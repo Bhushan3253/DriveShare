@@ -22,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public User register(@Valid @RequestBody RegisterRequest request) {
+    public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
 

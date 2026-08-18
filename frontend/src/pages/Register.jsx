@@ -15,6 +15,10 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [verificationToken, setVerificationToken] = useState('');
+  const [verificationUrl, setVerificationUrl] = useState('');
+  const [activating, setActivating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,8 +35,14 @@ const Register = () => {
     try {
       setLoading(true);
       setError('');
-      await authService.register(formData);
+      const res = await authService.register(formData);
       setRegisteredEmail(formData.email.trim().toLowerCase());
+      if (res?.verificationToken) {
+        setVerificationToken(res.verificationToken);
+      }
+      if (res?.verificationUrl) {
+        setVerificationUrl(res.verificationUrl);
+      }
     } catch (err) {
       console.error('Registration error:', err);
       const msg =
@@ -43,6 +53,28 @@ const Register = () => {
       setError(typeof msg === 'string' ? msg : 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInstantActivate = async () => {
+    if (!verificationToken) return;
+    try {
+      setActivating(true);
+      await authService.verifyEmail(verificationToken);
+      navigate('/login?verified=true', { replace: true });
+    } catch (err) {
+      console.error('Instant activation error:', err);
+      setError('Activation error. Please click the email link or try again.');
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (verificationUrl) {
+      navigator.clipboard.writeText(verificationUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
     }
   };
 
@@ -71,12 +103,55 @@ const Register = () => {
               </div>
 
               <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.75rem', color: '#6EE7B7' }}>
-                Verify Your Email
+                Account Created!
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                We have sent a verification link to: <br />
+                Verification details sent to: <br />
                 <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>{registeredEmail}</strong>
               </p>
+
+              {verificationToken && (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(16, 185, 129, 0.15))',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1.25rem',
+                    marginBottom: '1.5rem',
+                    textAlign: 'center'
+                  }}
+                >
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '0.75rem', fontWeight: 600 }}>
+                    ⚡ Instant 1-Click Verification
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleInstantActivate}
+                    disabled={activating}
+                    className="btn btn-primary btn-block flex items-center justify-center gap-2"
+                    style={{ marginBottom: '0.5rem' }}
+                  >
+                    {activating ? (
+                      <span>Activating Account...</span>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        <span>Verify & Activate Account Now</span>
+                      </>
+                    )}
+                  </button>
+                  {verificationUrl && (
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="btn btn-ghost btn-sm"
+                      style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}
+                    >
+                      {copied ? '✓ Link Copied!' : '📋 Copy Verification Link'}
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div
                 className="card"
@@ -85,23 +160,23 @@ const Register = () => {
                   border: '1px solid var(--border-subtle)',
                   padding: '1.25rem',
                   borderRadius: 'var(--radius-md)',
-                  marginBottom: '2rem',
+                  marginBottom: '1.5rem',
                   textAlign: 'left',
                   fontSize: '0.85rem',
                   color: 'var(--text-secondary)'
                 }}
               >
                 <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                  Next Steps:
+                  Email Verification:
                 </div>
                 <ol style={{ paddingLeft: '1.25rem', margin: 0, lineHeight: 1.6 }}>
-                  <li>Open your inbox and look for <strong>Verify your CarRental account</strong></li>
+                  <li>Check your inbox (or Spam folder) for <strong>DriveShare Car Rental</strong></li>
                   <li>Click the <strong>Verify Email</strong> button</li>
-                  <li>Log in to your newly activated account!</li>
+                  <li>Log in to your activated account!</li>
                 </ol>
               </div>
 
-              <Link to="/login" className="btn btn-primary btn-lg btn-block flex items-center justify-center gap-2">
+              <Link to="/login" className="btn btn-outline btn-block flex items-center justify-center gap-2">
                 <span>Proceed to Login</span>
                 <ArrowRight size={18} />
               </Link>

@@ -30,6 +30,9 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     public AuthService(
             UserRepository userRepository,
             EmailVerificationTokenRepository tokenRepository,
@@ -48,7 +51,7 @@ public class AuthService {
     // 1. REGISTER WITH SECURE EMAIL VERIFICATION
     // ==========================================
 
-    public User register(RegisterRequest request) {
+    public Map<String, Object> register(RegisterRequest request) {
         if (request == null || request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email is required");
         }
@@ -72,9 +75,18 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // Generate and send verification token
-        generateAndSendVerificationToken(savedUser);
+        String rawToken = generateAndSendVerificationToken(savedUser);
 
-        return savedUser;
+        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share.vercel.app";
+        String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
+
+        return Map.of(
+                "status", "SUCCESS",
+                "message", "Registration successful. Please verify your email.",
+                "user", savedUser,
+                "verificationToken", rawToken,
+                "verificationUrl", verificationUrl
+        );
     }
 
     // ==========================================
@@ -160,11 +172,16 @@ public class AuthService {
         tokenRepository.deleteByUserId(user.getId());
 
         // Generate and dispatch new token
-        generateAndSendVerificationToken(user);
+        String rawToken = generateAndSendVerificationToken(user);
+
+        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share.vercel.app";
+        String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
 
         return Map.of(
                 "status", "SUCCESS",
-                "message", "A new verification email has been sent to " + normalizedEmail + ". Please check your inbox."
+                "message", "A new verification email has been sent to " + normalizedEmail + ". Please check your inbox.",
+                "verificationToken", rawToken,
+                "verificationUrl", verificationUrl
         );
     }
 
@@ -215,7 +232,7 @@ public class AuthService {
     // HELPER: TOKEN GENERATION & HASHING
     // ==========================================
 
-    private void generateAndSendVerificationToken(User user) {
+    private String generateAndSendVerificationToken(User user) {
         String rawToken = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
         String tokenHash = hashToken(rawToken);
 
@@ -230,6 +247,7 @@ public class AuthService {
         tokenRepository.save(token);
 
         emailService.sendVerificationEmail(user.getEmail(), user.getName(), rawToken);
+        return rawToken;
     }
 
     private String hashToken(String rawToken) {

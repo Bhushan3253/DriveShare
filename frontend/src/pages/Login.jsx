@@ -22,6 +22,8 @@ const Login = () => {
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [resending, setResending] = useState(false);
   const [resendStatusMsg, setResendStatusMsg] = useState('');
+  const [resendVerificationToken, setResendVerificationToken] = useState('');
+  const [resendActivating, setResendActivating] = useState(false);
   const [demoLoading, setDemoLoading] = useState(null);
 
   const from = location.state?.from?.pathname || '/';
@@ -35,6 +37,7 @@ const Login = () => {
       setError('');
       setUnverifiedEmail('');
       setResendStatusMsg('');
+      setResendVerificationToken('');
     }
   };
 
@@ -80,6 +83,7 @@ const Login = () => {
       setError('');
       setUnverifiedEmail('');
       setResendStatusMsg('');
+      setResendVerificationToken('');
       await handleLoginSubmit(formData.email, formData.password);
     } catch (err) {
       // handled
@@ -95,6 +99,9 @@ const Login = () => {
       setResendStatusMsg('');
       const res = await authService.resendVerification(unverifiedEmail);
       setResendStatusMsg('✓ ' + (res.message || 'Verification link sent to your email!'));
+      if (res?.verificationToken) {
+        setResendVerificationToken(res.verificationToken);
+      }
       toast.success(res.message || 'Verification link sent to your email!');
     } catch (err) {
       const errMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to resend verification email.';
@@ -102,6 +109,21 @@ const Login = () => {
       toast.warning(errMsg);
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleResendActivate = async () => {
+    if (!resendVerificationToken) return;
+    try {
+      setResendActivating(true);
+      await authService.verifyEmail(resendVerificationToken);
+      toast.success('Email verified successfully! Logging you in...');
+      setUnverifiedEmail('');
+      await handleLoginSubmit(formData.email, formData.password);
+    } catch (err) {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setResendActivating(false);
     }
   };
 
@@ -220,8 +242,21 @@ const Login = () => {
               </p>
 
               {resendStatusMsg ? (
-                <div style={{ color: resendStatusMsg.startsWith('✓') ? '#6EE7B7' : '#FBBF24', fontSize: '0.85rem', fontWeight: 600 }}>
-                  {resendStatusMsg}
+                <div>
+                  <div style={{ color: resendStatusMsg.startsWith('✓') ? '#6EE7B7' : '#FBBF24', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                    {resendStatusMsg}
+                  </div>
+                  {resendVerificationToken && (
+                    <button
+                      type="button"
+                      onClick={handleResendActivate}
+                      disabled={resendActivating}
+                      className="btn btn-primary btn-sm flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>{resendActivating ? 'Activating...' : '⚡ Verify & Login Now (1-Click)'}</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <button
