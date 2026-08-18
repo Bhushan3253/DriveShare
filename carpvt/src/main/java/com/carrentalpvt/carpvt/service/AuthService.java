@@ -124,7 +124,7 @@ public class AuthService {
         if (frontendUrl != null && !frontendUrl.trim().isEmpty() && !frontendUrl.contains("localhost")) {
             return frontendUrl.trim().replaceAll("/+$", "");
         }
-        return "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
+        return "https://driveshare-cars.vercel.app";
     }
 
     // ==========================================
