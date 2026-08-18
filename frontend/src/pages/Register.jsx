@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
-import { UserPlus, Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowRight, Send, Sparkles } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowRight, Send, Sparkles, Loader2 } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ const Register = () => {
   const [activating, setActivating] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Synchronous lock to prevent duplicate submissions on mobile touch / double-tap
+  const isSubmittingRef = useRef(false);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError('');
@@ -27,15 +30,24 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password || !formData.phone) {
+    if (isSubmittingRef.current || loading) return;
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password || !formData.phone.trim()) {
       setError('Please fill in all fields.');
       return;
     }
 
     try {
+      isSubmittingRef.current = true;
       setLoading(true);
       setError('');
-      const res = await authService.register(formData);
+      const res = await authService.register({
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        phone: formData.phone.trim()
+      });
+
       setRegisteredEmail(formData.email.trim().toLowerCase());
       if (res?.verificationToken) {
         setVerificationToken(res.verificationToken);
@@ -49,9 +61,10 @@ const Register = () => {
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.response?.data ||
-        'Registration failed. Email may already be registered.';
+        'Registration failed. Please check your connection and try again.';
       setError(typeof msg === 'string' ? msg : 'Registration failed. Please try again.');
     } finally {
+      isSubmittingRef.current = false;
       setLoading(false);
     }
   };
@@ -299,10 +312,13 @@ const Register = () => {
                   type="submit"
                   disabled={loading}
                   className="btn btn-primary btn-block btn-lg flex items-center justify-center gap-2"
-                  style={{ marginTop: '1.5rem' }}
+                  style={{ marginTop: '1.5rem', opacity: loading ? 0.75 : 1 }}
                 >
                   {loading ? (
-                    <span>Creating Account...</span>
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Creating Account & Sending Email...</span>
+                    </>
                   ) : (
                     <>
                       <span>Create Account</span>

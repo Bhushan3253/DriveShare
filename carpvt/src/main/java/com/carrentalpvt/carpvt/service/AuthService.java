@@ -58,10 +58,43 @@ public class AuthService {
 
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
-        if (userRepository.existsByEmail(normalizedEmail)) {
-            throw new IllegalStateException("Email already registered");
+        java.util.Optional<User> existingUserOpt = userRepository.findByEmail(normalizedEmail);
+
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+
+            // If account is already verified, block duplicate registration
+            if (existingUser.isEmailVerified()) {
+                throw new IllegalStateException("Email already registered and verified. Please sign in.");
+            }
+
+            // If account exists but is UNVERIFIED, update details and resend verification
+            existingUser.setName(request.getName() != null ? request.getName().trim() : existingUser.getName());
+            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+                existingUser.setPhone(request.getPhone().trim());
+            }
+            existingUser.setEnabled(true);
+
+            User savedUser = userRepository.save(existingUser);
+
+            // Invalidate any previous pending tokens for this user
+            tokenRepository.deleteByUserId(savedUser.getId());
+
+            // Generate and dispatch fresh verification token
+            String rawToken = generateAndSendVerificationToken(savedUser);
+            String verificationUrl = getCleanFrontendUrl() + "/verify-email?token=" + rawToken;
+
+            return Map.of(
+                    "status", "SUCCESS",
+                    "message", "Registration renewed! A new verification link has been sent to your email.",
+                    "user", savedUser,
+                    "verificationToken", rawToken,
+                    "verificationUrl", verificationUrl
+            );
         }
 
+        // New user creation
         User user = new User();
         user.setName(request.getName() != null ? request.getName().trim() : "User");
         user.setEmail(normalizedEmail);
@@ -76,9 +109,7 @@ public class AuthService {
 
         // Generate and send verification token
         String rawToken = generateAndSendVerificationToken(savedUser);
-
-        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
-        String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
+        String verificationUrl = getCleanFrontendUrl() + "/verify-email?token=" + rawToken;
 
         return Map.of(
                 "status", "SUCCESS",
@@ -87,6 +118,13 @@ public class AuthService {
                 "verificationToken", rawToken,
                 "verificationUrl", verificationUrl
         );
+    }
+
+    private String getCleanFrontendUrl() {
+        if (frontendUrl != null && !frontendUrl.trim().isEmpty() && !frontendUrl.contains("localhost")) {
+            return frontendUrl.trim().replaceAll("/+$", "");
+        }
+        return "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
     }
 
     // ==========================================
@@ -173,9 +211,7 @@ public class AuthService {
 
         // Generate and dispatch new token
         String rawToken = generateAndSendVerificationToken(user);
-
-        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
-        String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
+        String verificationUrl = getCleanFrontendUrl() + "/verify-email?token=" + rawToken;
 
         return Map.of(
                 "status", "SUCCESS",

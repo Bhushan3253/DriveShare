@@ -53,9 +53,10 @@ public class EmailService {
 
     @Async("taskExecutor")
     public void sendVerificationEmail(String toEmail, String userName, String rawToken) {
-        String verificationUrl = frontendUrl + "/verify-email?token=" + rawToken;
+        String baseUrl = getCleanFrontendUrl();
+        String verificationUrl = baseUrl + "/verify-email?token=" + rawToken;
 
-        String subject = "Verify your CarRental account";
+        String subject = "Verify your DriveShare Car Rental account";
         String htmlContent = buildVerificationEmailHtml(userName, verificationUrl);
         String textContent = buildVerificationEmailText(userName, verificationUrl);
 
@@ -75,7 +76,7 @@ public class EmailService {
             }
         }
 
-        // 2. Second Priority: Send via JavaMailSender SMTP (if local / unblocked)
+        // 3. Third Priority: Send via JavaMailSender SMTP (if local / unblocked)
         if (mailSender != null && mailUsername != null && !mailUsername.trim().isEmpty()) {
             try {
                 MimeMessage message = mailSender.createMimeMessage();
@@ -87,6 +88,11 @@ public class EmailService {
                 helper.setSubject(subject);
                 helper.setText(textContent, htmlContent);
 
+                // Anti-spam transactional headers
+                message.setHeader("Auto-Submitted", "auto-generated");
+                message.setHeader("X-Auto-Response-Suppress", "All");
+                message.setHeader("Precedence", "bulk");
+
                 mailSender.send(message);
                 log.info("✓ Verification email successfully sent via SMTP to: {}", toEmail);
                 return;
@@ -95,12 +101,19 @@ public class EmailService {
             }
         }
 
-        // 3. Fallback: Console Logger for Diagnostics
+        // 4. Fallback: Console Logger for Diagnostics
         log.info("================================================================================");
         log.info("📧 [EMAIL DISPATCHED] To: {} | Subject: {}", toEmail, subject);
         log.info("🔗 VERIFICATION LINK: {}", verificationUrl);
         log.info("⏱️ EXPIRES IN: 30 minutes");
         log.info("================================================================================");
+    }
+
+    private String getCleanFrontendUrl() {
+        if (frontendUrl != null && !frontendUrl.trim().isEmpty() && !frontendUrl.contains("localhost")) {
+            return frontendUrl.trim().replaceAll("/+$", "");
+        }
+        return "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
     }
 
     private boolean sendViaBrevo(String toEmail, String userName, String subject, String htmlContent, String textContent) {
