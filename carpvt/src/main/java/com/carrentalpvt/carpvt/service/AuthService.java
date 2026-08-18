@@ -77,7 +77,7 @@ public class AuthService {
         // Generate and send verification token
         String rawToken = generateAndSendVerificationToken(savedUser);
 
-        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share.vercel.app";
+        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
         String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
 
         return Map.of(
@@ -174,7 +174,7 @@ public class AuthService {
         // Generate and dispatch new token
         String rawToken = generateAndSendVerificationToken(user);
 
-        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share.vercel.app";
+        String cleanFrontendUrl = (frontendUrl != null && !frontendUrl.isEmpty()) ? frontendUrl : "https://drive-share-jj4ehucbv-bhushans-projects-48426fb6.vercel.app";
         String verificationUrl = cleanFrontendUrl + "/verify-email?token=" + rawToken;
 
         return Map.of(
