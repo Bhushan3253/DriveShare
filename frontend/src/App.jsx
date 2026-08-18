@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 // Layout & Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import MobileBottomNav from './components/MobileBottomNav';
+import SplashScreen from './components/SplashScreen';
 import AdminSidebar from './components/AdminSidebar';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
@@ -52,6 +54,7 @@ const StandardLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };
@@ -72,11 +75,23 @@ const AdminLayout = () => {
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Show splash screen on first visit / app boot
+    return !sessionStorage.getItem('driveshare_splash_shown');
+  });
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('driveshare_splash_shown', 'true');
+    setShowSplash(false);
+  };
+
   return (
-    <Routes>
-      {/* 1. Public & Renter / Owner Routes in Standard Layout */}
-      <Route element={<StandardLayout />}>
-        <Route path="/" element={<Home />} />
+    <>
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+      <Routes>
+        {/* 1. Public & Renter / Owner Routes in Standard Layout */}
+        <Route element={<StandardLayout />}>
+          <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -214,6 +229,7 @@ function App() {
       {/* Fallback Redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

@@ -278,22 +278,23 @@ const Navbar = () => {
       {/* Mobile Drawer Menu */}
       {mobileOpen && (
         <div
-          className="mobile-only card card-glass animate-slide-up"
+          className="mobile-nav-drawer animate-slide-up"
           style={{
             position: 'fixed',
             top: '72px',
             left: 0,
+            right: 0,
+            bottom: 0,
             width: '100vw',
             height: 'calc(100vh - 72px)',
-            borderRadius: 0,
-            borderLeft: 'none',
-            borderRight: 'none',
-            zIndex: 899,
+            backgroundColor: '#0B0F19',
+            zIndex: 9999,
             overflowY: 'auto',
-            padding: '1.5rem',
+            padding: '1.25rem 1rem 3.5rem 1rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem'
+            gap: '0.5rem',
+            boxSizing: 'border-box'
           }}
           onClick={(e) => {
             if (e.target.tagName === 'A' || e.target.closest('button')) {
@@ -301,91 +302,108 @@ const Navbar = () => {
             }
           }}
         >
+          {/* Main Discovery */}
           <NavLink to="/" end className="mobile-nav-link">
-            Home
+            <Car size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+            <span>Home Marketplace</span>
           </NavLink>
           <NavLink to="/cars" className="mobile-nav-link">
-            Find Cars
+            <Car size={18} style={{ color: 'var(--accent-cyan)', flexShrink: 0 }} />
+            <span>Browse All Cars</span>
           </NavLink>
 
           {isAuthenticated ? (
             <>
-              <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '0.5rem 0' }} />
-
-              <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
-                Renter Navigation
-              </p>
+              {/* Renter Section */}
+              <div className="mobile-nav-header" style={{ marginTop: '0.75rem' }}>
+                <span>Renter Portal</span>
+              </div>
               <NavLink to="/my-bookings" className="mobile-nav-link">
-                My Bookings
+                <CalendarCheck size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                <span>My Bookings & Trips</span>
               </NavLink>
               <NavLink to="/profile" className="mobile-nav-link">
-                My Profile
+                <User size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                <span>My Profile & Settings</span>
               </NavLink>
 
+              {/* Owner Section */}
               {isOwner && (
                 <>
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '0.5rem 0' }} />
-                  <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
-                    Owner Portal
-                  </p>
+                  <div className="mobile-nav-header" style={{ marginTop: '0.75rem' }}>
+                    <span>Host / Owner Portal</span>
+                  </div>
                   <NavLink to="/owner" end className="mobile-nav-link">
-                    Owner Dashboard
+                    <LayoutDashboard size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                    <span>Owner Dashboard</span>
                   </NavLink>
                   <NavLink to="/owner/cars" className="mobile-nav-link">
-                    My Fleet / Cars
+                    <Car size={18} style={{ color: 'var(--accent-cyan)', flexShrink: 0 }} />
+                    <span>My Fleet / Cars</span>
                   </NavLink>
                   <NavLink to="/owner/cars/add" className="mobile-nav-link">
-                    + Add New Car
+                    <PlusCircle size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                    <span>+ List New Car</span>
                   </NavLink>
                   <NavLink to="/owner/bookings" className="mobile-nav-link">
-                    Owner Bookings
+                    <CalendarCheck size={18} style={{ color: 'var(--accent-amber)', flexShrink: 0 }} />
+                    <span>Owner Reservations</span>
                   </NavLink>
                   <NavLink to="/owner/earnings" className="mobile-nav-link">
-                    Earnings & Payouts
+                    <DollarSign size={18} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                    <span>Earnings & Payouts</span>
                   </NavLink>
                 </>
               )}
 
+              {/* Admin Section */}
               {isAdmin && (
                 <>
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '0.5rem 0' }} />
-                  <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#F59E0B', fontWeight: 700 }}>
-                    Admin Controls
-                  </p>
+                  <div className="mobile-nav-header" style={{ marginTop: '0.75rem', color: '#F59E0B' }}>
+                    <span>Admin Controls</span>
+                  </div>
                   <NavLink to="/admin" className="mobile-nav-link">
-                    Admin Dashboard
+                    <Shield size={18} style={{ color: '#F59E0B', flexShrink: 0 }} />
+                    <span>Admin Dashboard</span>
                   </NavLink>
                   <NavLink to="/admin/cars" className="mobile-nav-link">
-                    Car Approvals
+                    <CheckCircle size={18} style={{ color: '#F59E0B', flexShrink: 0 }} />
+                    <span>Car Approvals</span>
                   </NavLink>
                   <NavLink to="/admin/utr" className="mobile-nav-link">
-                    UTR Verification
+                    <CreditCard size={18} style={{ color: '#F59E0B', flexShrink: 0 }} />
+                    <span>UTR Verification</span>
                   </NavLink>
                   <NavLink to="/admin/payouts" className="mobile-nav-link">
-                    Payout Settlements
+                    <DollarSign size={18} style={{ color: '#F59E0B', flexShrink: 0 }} />
+                    <span>Payout Settlements</span>
                   </NavLink>
                   <NavLink to="/admin/bookings" className="mobile-nav-link">
-                    All Bookings
+                    <CalendarCheck size={18} style={{ color: '#F59E0B', flexShrink: 0 }} />
+                    <span>All Bookings</span>
                   </NavLink>
                 </>
               )}
 
-              <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+              {/* Logout Button */}
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
                 <button
+                  type="button"
                   onClick={logout}
                   className="btn btn-danger btn-block flex items-center justify-center gap-2"
+                  style={{ padding: '0.85rem 1rem', fontSize: '0.95rem', fontWeight: 700 }}
                 >
                   <LogOut size={18} />
-                  Logout ({user?.name})
+                  <span>Logout ({user?.name || 'User'})</span>
                 </button>
               </div>
             </>
           ) : (
             <div className="flex flex-col gap-3" style={{ marginTop: '1rem' }}>
-              <Link to="/login" className="btn btn-secondary btn-block">
+              <Link to="/login" className="btn btn-secondary btn-block btn-lg">
                 Login
               </Link>
-              <Link to="/register" className="btn btn-primary btn-block">
+              <Link to="/register" className="btn btn-primary btn-block btn-lg">
                 Create Account
               </Link>
             </div>
@@ -428,18 +446,43 @@ const Navbar = () => {
         .dropdown-item:hover {
           background: var(--bg-surface-hover);
         }
+        .mobile-nav-drawer {
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .mobile-nav-header {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--text-muted);
+          font-weight: 800;
+          padding: 0.5rem 0.5rem 0.25rem;
+          border-bottom: 1px solid var(--border-subtle);
+          margin-bottom: 0.35rem;
+        }
         .mobile-nav-link {
-          padding: 0.75rem 1rem;
-          font-size: 1rem;
-          font-weight: 600;
-          color: var(--text-primary);
-          border-radius: var(--radius-md);
-          background: var(--bg-surface-raised);
+          display: flex !important;
+          align-items: center !important;
+          gap: 0.75rem !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 0.85rem 1rem !important;
+          font-size: 0.95rem !important;
+          font-weight: 600 !important;
+          color: var(--text-primary) !important;
+          border-radius: var(--radius-md) !important;
+          background: var(--bg-surface-raised) !important;
+          border: 1px solid var(--border-subtle) !important;
+          text-decoration: none !important;
+          margin-bottom: 0.25rem !important;
+        }
+        .mobile-nav-link:hover {
+          background: var(--bg-surface-hover) !important;
         }
         .mobile-nav-link.active {
-          background: var(--primary-light);
-          color: var(--primary);
-          border: 1px solid var(--primary);
+          background: rgba(59, 130, 246, 0.18) !important;
+          color: #60A5FA !important;
+          border-color: rgba(59, 130, 246, 0.4) !important;
         }
       `}</style>
     </nav>

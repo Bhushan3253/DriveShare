@@ -209,6 +209,24 @@ button {
   .mobile-only.flex {
     display: flex !important;
   }
+
+  /* Mobile App Polish */
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  .main-content {
+    padding-bottom: 74px; /* Space for Mobile Bottom Nav */
+  }
+
+  .btn:active {
+    transform: scale(0.97) !important;
+  }
+
+  .card:active {
+    border-color: var(--border-strong);
+  }
 }
 
 /* Grid Layouts */
