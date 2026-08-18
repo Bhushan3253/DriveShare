@@ -76,6 +76,36 @@ const AdminPayouts = () => {
     }
   };
 
+  const exportToCSV = () => {
+    if (!filteredPayouts.length) {
+      alert('No payout records to export.');
+      return;
+    }
+
+    const headers = ['Payout ID', 'Owner ID', 'Booking ID', 'Gross Amount', 'Platform Fee', 'Net Payout', 'UPI / Bank', 'Status', 'Reference', 'Created At'];
+    const rows = filteredPayouts.map((p) => [
+      `"${p.id}"`,
+      `"${p.ownerId || ''}"`,
+      `"${p.bookingId || ''}"`,
+      p.bookingTotalAmount || 0,
+      p.commissionAmount || 0,
+      p.netPayoutAmount || 0,
+      `"${p.payoutMethod || ''} - ${p.payoutDetails || ''}"`,
+      `"${p.status || ''}"`,
+      `"${p.payoutReference || ''}"`,
+      `"${p.createdAt || ''}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `DriveShare_Payouts_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredPayouts = payouts.filter((p) => {
     if (filter === 'ALL') return true;
     return p.status === filter;
@@ -94,7 +124,7 @@ const AdminPayouts = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-1" style={{ background: 'var(--bg-surface)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             {['ALL', 'PENDING', 'PROCESSED', 'FAILED'].map((tab) => (
               <button
@@ -112,6 +142,11 @@ const AdminPayouts = () => {
               </button>
             ))}
           </div>
+
+          <button onClick={exportToCSV} className="btn btn-secondary btn-sm flex items-center gap-1">
+            <DollarSign size={14} />
+            <span>Export CSV</span>
+          </button>
 
           <button onClick={fetchPayouts} className="btn btn-secondary btn-sm flex items-center gap-1">
             <RefreshCw size={14} />

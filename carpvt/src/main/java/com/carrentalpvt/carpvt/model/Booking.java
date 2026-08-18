@@ -81,4 +81,24 @@ public class Booking {
     private String cancelledBy;
 
     private String cancellationReason;
+
+    // Pre-Trip Handover Inspection
+    private Integer startOdometer;
+
+    private String startFuelLevel;
+
+    private java.util.List<String> checkInPhotos = new java.util.ArrayList<>();
+
+    private String checkInNotes;
+
+    // Post-Trip Return Inspection
+    private Integer endOdometer;
+
+    private Integer totalDistanceDriven;
+
+    private String endFuelLevel;
+
+    private java.util.List<String> checkOutPhotos = new java.util.ArrayList<>();
+
+    private String checkOutNotes;
 }

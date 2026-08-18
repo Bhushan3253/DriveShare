@@ -2,11 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import carService from '../../services/carService';
 import CarCard from '../../components/CarCard';
-import Loading from '../../components/Loading';
+import SkeletonCard from '../../components/SkeletonCard';
 import ErrorMessage from '../../components/ErrorMessage';
 import Pagination from '../../components/Pagination';
 import { CAR_TYPES, FUEL_TYPES, TRANSMISSIONS } from '../../utils/constants';
-import { Filter, RotateCcw, Search, Car, SlidersHorizontal, X } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
+import {
+  Filter,
+  RotateCcw,
+  Search,
+  Car,
+  SlidersHorizontal,
+  X,
+  Navigation,
+  MapPin,
+  Map as MapIcon,
+  Grid,
+  Zap,
+  Star,
+  ShieldCheck
+} from 'lucide-react';
 
 const CarList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +30,9 @@ const CarList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('GRID'); // 'GRID' or 'MAP'
+  const [geoLocating, setGeoLocating] = useState(false);
+  const [selectedMapCar, setSelectedMapCar] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +48,7 @@ const CarList = () => {
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+  const [sortBy, setSortBy] = useState('RELEVANCE');
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -37,7 +56,7 @@ const CarList = () => {
     try {
       setLoading(true);
       setError('');
-      setCurrentPage(1); // Reset to page 1 on new search
+      setCurrentPage(1);
 
       const queryParams = {};
       if (location) queryParams.location = location;
@@ -50,7 +69,6 @@ const CarList = () => {
       if (startDate) queryParams.startDate = startDate;
       if (endDate) queryParams.endDate = endDate;
 
-      // Update URL query params
       setSearchParams(queryParams, { replace: true });
 
       const data = await carService.searchCars(queryParams);
@@ -65,7 +83,7 @@ const CarList = () => {
 
   useEffect(() => {
     fetchCars();
-  }, []);
+  }, [type]); // Refetch when type chip changes
 
   const handleApplyFilters = (e) => {
     e?.preventDefault();
@@ -83,35 +101,111 @@ const CarList = () => {
     setMaxPrice('');
     setStartDate('');
     setEndDate('');
+    setSortBy('RELEVANCE');
     setCurrentPage(1);
     setSearchParams({}, { replace: true });
 
     carService.getAvailableCars().then((data) => setCars(data || [])).catch(console.error);
   };
 
-  // Slice cars for active page
-  const paginatedCars = cars.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const handleNearMeGPS = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your device browser.');
+      return;
+    }
+    setGeoLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGeoLocating(false);
+        // Default to active metro cities or detected area
+        setLocation('Nearby (GPS Detected)');
+        fetchCars();
+      },
+      (err) => {
+        setGeoLocating(false);
+        alert('Unable to retrieve your location. Please type your city manually.');
+      },
+      { timeout: 10000 }
+    );
+  };
+
+  // Sort logic
+  const sortedCars = [...cars].sort((a, b) => {
+    if (sortBy === 'PRICE_LOW') return a.pricePerDay - b.pricePerDay;
+    if (sortBy === 'PRICE_HIGH') return b.pricePerDay - a.pricePerDay;
+    if (sortBy === 'RATING') return (b.averageRating || 0) - (a.averageRating || 0);
+    return 0;
+  });
+
+  const paginatedCars = sortedCars.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="container section">
-      {/* Title & Mobile Filter Trigger */}
-      <div className="flex items-center justify-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* Title & Top Bar */}
+      <div className="flex items-center justify-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>
             Explore Available Cars
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Choose from vetted private vehicles in your neighbourhood
+            Verified private cars with insurance protection in your city
           </p>
         </div>
 
-        <button
-          onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-          className="btn btn-secondary mobile-only flex items-center gap-2"
-        >
-          <SlidersHorizontal size={16} />
-          <span>Filters</span>
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* GPS Near Me button */}
+          <button
+            onClick={handleNearMeGPS}
+            disabled={geoLocating}
+            className="btn btn-secondary btn-sm flex items-center gap-1.5"
+            style={{ color: 'var(--accent-cyan)', borderColor: 'rgba(6,182,212,0.3)' }}
+          >
+            <Navigation size={14} className={geoLocating ? 'animate-pulse' : ''} />
+            <span>{geoLocating ? 'Locating...' : 'Near Me (GPS)'}</span>
+          </button>
+
+          {/* View Mode Toggle: Grid vs Map */}
+          <div className="flex items-center" style={{ background: 'var(--bg-surface)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+            <button
+              onClick={() => setViewMode('GRID')}
+              className={`btn btn-sm ${viewMode === 'GRID' ? 'btn-primary' : ''}`}
+              style={{ background: viewMode === 'GRID' ? undefined : 'transparent', border: 'none', padding: '0.35rem 0.6rem' }}
+              title="Grid View"
+            >
+              <Grid size={15} />
+            </button>
+            <button
+              onClick={() => setViewMode('MAP')}
+              className={`btn btn-sm ${viewMode === 'MAP' ? 'btn-primary' : ''}`}
+              style={{ background: viewMode === 'MAP' ? undefined : 'transparent', border: 'none', padding: '0.35rem 0.6rem' }}
+              title="Map View"
+            >
+              <MapIcon size={15} />
+            </button>
+          </div>
+
+          <button
+            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            className="btn btn-secondary mobile-only flex items-center gap-2"
+          >
+            <SlidersHorizontal size={16} />
+            <span>Filters</span>
+          </button>
+        </div>
+      </div>
+
+      {/* QUICK CATEGORY CHIPS BAR */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2" style={{ marginBottom: '1.75rem' }}>
+        {['', 'SUV', 'Sedan', 'Hatchback', 'Luxury', 'Electric'].map((cat) => (
+          <button
+            key={cat || 'ALL'}
+            onClick={() => setType(cat)}
+            className={`btn btn-sm ${type === cat ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ borderRadius: 'var(--radius-full)', padding: '0.4rem 1rem', fontSize: '0.85rem', flexShrink: 0 }}
+          >
+            {cat || 'All Vehicles'}
+          </button>
+        ))}
       </div>
 
       {/* Mobile Filter Backdrop */}
@@ -155,7 +249,7 @@ const CarList = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Mumbai"
+                placeholder="e.g. Mumbai, Pune"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
@@ -163,25 +257,23 @@ const CarList = () => {
 
             {/* Dates */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Start Date</label>
-              <input
-                type="date"
-                className="form-input"
-                min={todayStr}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">End Date</label>
-              <input
-                type="date"
-                className="form-input"
-                min={startDate || todayStr}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+              <label className="form-label">Rental Dates</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  className="form-input"
+                  min={todayStr}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <input
+                  type="date"
+                  className="form-input"
+                  min={startDate || todayStr}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Brand */}
@@ -190,23 +282,10 @@ const CarList = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Hyundai, Honda, Tata"
+                placeholder="e.g. Hyundai, Tata, Honda"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
               />
-            </div>
-
-            {/* Vehicle Type */}
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Body Type</label>
-              <select className="form-select" value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="">All Body Types</option>
-                {CAR_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Fuel Type */}
@@ -237,7 +316,7 @@ const CarList = () => {
 
             {/* Price Range */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Price Range (₹ / day)</label>
+              <label className="form-label">Daily Price (₹)</label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -265,20 +344,149 @@ const CarList = () => {
           </form>
         </aside>
 
-        {/* Cars Result Grid */}
+        {/* Cars Result Area (Grid or Map View) */}
         <main className="flex-1" style={{ width: '100%', minWidth: 0 }}>
           {error && <ErrorMessage message={error} onRetry={fetchCars} />}
 
+          {/* Sort & Count Header */}
+          {!loading && cars.length > 0 && (
+            <div className="flex justify-between items-center flex-wrap gap-2" style={{ marginBottom: '1.25rem' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Showing <strong>{paginatedCars.length}</strong> of <strong>{cars.length}</strong> available vehicles
+              </span>
+
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sort by:</span>
+                <select
+                  className="form-select"
+                  style={{ width: 'auto', padding: '0.3rem 0.75rem', fontSize: '0.85rem' }}
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="RELEVANCE">Featured & Best Match</option>
+                  <option value="PRICE_LOW">Price: Low to High</option>
+                  <option value="PRICE_HIGH">Price: High to Low</option>
+                  <option value="RATING">Top Rated</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* SKELETON SHIMMER LOADERS */}
           {loading ? (
-            <Loading message="Filtering available vehicles..." />
-          ) : cars.length > 0 ? (
-            <div>
-              <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  Showing <strong>{paginatedCars.length}</strong> of <strong>{cars.length}</strong> available {cars.length === 1 ? 'vehicle' : 'vehicles'}
+            <div className="cars-results-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : viewMode === 'MAP' ? (
+            /* MAP EXPLORER VIEW */
+            <div
+              style={{
+                background: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-subtle)',
+                padding: '1.5rem',
+                minHeight: '480px'
+              }}
+            >
+              <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+                <div className="flex items-center gap-2">
+                  <MapIcon size={20} style={{ color: 'var(--primary)' }} />
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Interactive Vehicle Map</h3>
+                </div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Click on any pin to view details
                 </span>
               </div>
 
+              {/* Styled Interactive Map Canvas Mock */}
+              <div
+                style={{
+                  position: 'relative',
+                  height: '380px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                {/* Decorative Map Grid Lines */}
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+                {/* Map Pins */}
+                {cars.map((c, idx) => {
+                  const offsets = [
+                    { top: '30%', left: '25%' },
+                    { top: '45%', left: '55%' },
+                    { top: '65%', left: '35%' },
+                    { top: '25%', left: '70%' },
+                    { top: '60%', left: '75%' },
+                    { top: '40%', left: '40%' }
+                  ];
+                  const pos = offsets[idx % offsets.length];
+
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setSelectedMapCar(c)}
+                      style={{
+                        position: 'absolute',
+                        top: pos.top,
+                        left: pos.left,
+                        cursor: 'pointer',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 10
+                      }}
+                      className="animate-bounce"
+                    >
+                      <div
+                        style={{
+                          background: selectedMapCar?.id === c.id ? '#3B82F6' : '#111827',
+                          color: '#fff',
+                          border: '2px solid #3B82F6',
+                          borderRadius: 'var(--radius-full)',
+                          padding: '4px 10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <Car size={12} />
+                        <span>{formatCurrency(c.pricePerDay)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Selected Car Float Modal on Map */}
+                {selectedMapCar && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 16,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      zIndex: 30,
+                      width: '90%',
+                      maxWidth: '340px'
+                    }}
+                    className="animate-slide-up"
+                  >
+                    <CarCard car={selectedMapCar} />
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : cars.length > 0 ? (
+            /* STANDARD GRID VIEW */
+            <div>
               <div className="cars-results-grid">
                 {paginatedCars.map((car) => (
                   <CarCard key={car.id} car={car} />
@@ -358,3 +566,4 @@ const CarList = () => {
 };
 
 export default CarList;
+

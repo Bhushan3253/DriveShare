@@ -148,15 +148,27 @@ const OwnerBookings = () => {
                         </div>
                       </td>
 
-                      {/* Dates */}
+                      {/* Trip Dates & Handover Info */}
                       <td>
                         <div className="flex items-center gap-1" style={{ fontSize: '0.85rem' }}>
                           <Calendar size={13} style={{ color: 'var(--primary)' }} />
                           <span>{formatDate(b.startDate)} → {formatDate(b.endDate)}</span>
                         </div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {b.totalDays} {b.totalDays === 1 ? 'day' : 'days'}
-                        </span>
+                        <div className="flex items-center gap-2" style={{ fontSize: '0.75rem', marginTop: '2px' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>
+                            {b.totalDays} {b.totalDays === 1 ? 'day' : 'days'}
+                          </span>
+                          {b.startOdometer && (
+                            <span style={{ color: 'var(--accent-cyan)' }}>
+                              • 📟 {b.startOdometer} km
+                            </span>
+                          )}
+                          {b.totalDistanceDriven && (
+                            <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>
+                              • 🚀 {b.totalDistanceDriven} km driven
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Gross Price */}

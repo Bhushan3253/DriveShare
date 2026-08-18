@@ -99,10 +99,11 @@ public class BookingController {
     @PutMapping("/{id}/check-in")
     public Booking checkIn(
             @PathVariable String id,
+            @RequestBody(required = false) com.carrentalpvt.carpvt.dto.BookingInspectionRequest inspection,
             Authentication authentication) {
 
         String userId = requireAuthenticatedUserId(authentication);
-        return bookingService.checkIn(id, userId);
+        return bookingService.checkIn(id, userId, inspection);
     }
 
     // ==========================================
@@ -125,10 +126,11 @@ public class BookingController {
     @PutMapping("/{id}/return")
     public Booking returnCar(
             @PathVariable String id,
+            @RequestBody(required = false) com.carrentalpvt.carpvt.dto.BookingInspectionRequest inspection,
             Authentication authentication) {
 
         String userId = requireAuthenticatedUserId(authentication);
-        return bookingService.returnCar(id, userId);
+        return bookingService.returnCar(id, userId, inspection);
     }
 
     // ==========================================

@@ -99,12 +99,73 @@ public class AdminController {
     }
 
     // ==========================================
-    // 6. USER MANAGEMENT
+    // 6. USER MANAGEMENT & KYC MODERATION
     // ==========================================
 
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return adminService.getAllUsers();
+    }
+
+    @PutMapping("/users/{userId}/kyc/approve")
+    public User approveUserKyc(
+            @PathVariable String userId,
+            Authentication authentication) {
+
+        String adminId = requireAuthenticatedUserId(authentication);
+        return adminService.approveUserKyc(userId, adminId);
+    }
+
+    @PutMapping("/users/{userId}/kyc/reject")
+    public User rejectUserKyc(
+            @PathVariable String userId,
+            @RequestBody(required = false) PaymentRejectionRequest request,
+            Authentication authentication) {
+
+        String adminId = requireAuthenticatedUserId(authentication);
+        String reason = request != null ? request.getReason() : null;
+        return adminService.rejectUserKyc(userId, adminId, reason);
+    }
+
+    @PutMapping("/users/{userId}/toggle-status")
+    public User toggleUserStatus(
+            @PathVariable String userId,
+            Authentication authentication) {
+
+        String adminId = requireAuthenticatedUserId(authentication);
+        return adminService.toggleUserStatus(userId, adminId);
+    }
+
+    @PutMapping("/users/{userId}/role")
+    public User updateUserRole(
+            @PathVariable String userId,
+            @RequestParam("role") String newRole,
+            Authentication authentication) {
+
+        String adminId = requireAuthenticatedUserId(authentication);
+        return adminService.updateUserRole(userId, newRole, adminId);
+    }
+
+    @GetMapping("/users/{userId}/dossier")
+    public java.util.Map<String, Object> getUserDossier(
+            @PathVariable String userId) {
+
+        return adminService.getUserDossier(userId);
+    }
+
+    // ==========================================
+    // 7. BOOKING DISPUTE / FORCE CANCELLATION
+    // ==========================================
+
+    @PutMapping("/bookings/{bookingId}/force-cancel")
+    public Booking forceCancelBooking(
+            @PathVariable String bookingId,
+            @RequestBody(required = false) PaymentRejectionRequest request,
+            Authentication authentication) {
+
+        String adminId = requireAuthenticatedUserId(authentication);
+        String reason = request != null ? request.getReason() : null;
+        return adminService.forceCancelBooking(bookingId, adminId, reason);
     }
 
     private String requireAuthenticatedUserId(Authentication authentication) {

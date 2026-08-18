@@ -215,7 +215,7 @@ public class BookingService {
     // 3. CHECK-IN (RENTER OR OWNER)
     // ==========================================
 
-    public Booking checkIn(String bookingId, String userId) {
+    public Booking checkIn(String bookingId, String userId, com.carrentalpvt.carpvt.dto.BookingInspectionRequest inspection) {
         Booking booking = getBookingByIdInternal(bookingId);
 
         boolean isRenter = booking.getRenterId().equals(userId);
@@ -236,17 +236,30 @@ public class BookingService {
         booking.setStatus("CHECKED_IN");
         booking.setCheckedInAt(LocalDateTime.now());
 
+        if (inspection != null) {
+            if (inspection.getOdometer() != null) booking.setStartOdometer(inspection.getOdometer());
+            if (inspection.getFuelLevel() != null) booking.setStartFuelLevel(inspection.getFuelLevel());
+            if (inspection.getNotes() != null) booking.setCheckInNotes(inspection.getNotes());
+            if (inspection.getPhotos() != null && !inspection.getPhotos().isEmpty()) {
+                booking.setCheckInPhotos(inspection.getPhotos());
+            }
+        }
+
         Booking saved = bookingRepository.save(booking);
 
         notificationService.sendNotification(
                 booking.getOwnerId(),
-                "Check-In Completed",
-                "Check-in has been completed for booking #" + booking.getId().substring(Math.max(0, booking.getId().length() - 6)) + ".",
+                "Check-In & Handover Inspection Completed",
+                "Pre-trip inspection completed for booking #" + booking.getId().substring(Math.max(0, booking.getId().length() - 6)) + (booking.getStartOdometer() != null ? " (" + booking.getStartOdometer() + " km)" : "") + ".",
                 "CHECKED_IN",
                 booking.getId()
         );
 
         return saved;
+    }
+
+    public Booking checkIn(String bookingId, String userId) {
+        return checkIn(bookingId, userId, null);
     }
 
     // ==========================================
@@ -287,7 +300,7 @@ public class BookingService {
     // 5. RETURN CAR (RENTER OR OWNER HANDOVER)
     // ==========================================
 
-    public Booking returnCar(String bookingId, String userId) {
+    public Booking returnCar(String bookingId, String userId, com.carrentalpvt.carpvt.dto.BookingInspectionRequest inspection) {
         Booking booking = getBookingByIdInternal(bookingId);
 
         boolean isRenter = booking.getRenterId().equals(userId);
@@ -304,17 +317,35 @@ public class BookingService {
         booking.setStatus("RETURNED");
         booking.setReturnedAt(LocalDateTime.now());
 
+        if (inspection != null) {
+            if (inspection.getOdometer() != null) {
+                booking.setEndOdometer(inspection.getOdometer());
+                if (booking.getStartOdometer() != null) {
+                    booking.setTotalDistanceDriven(Math.max(0, inspection.getOdometer() - booking.getStartOdometer()));
+                }
+            }
+            if (inspection.getFuelLevel() != null) booking.setEndFuelLevel(inspection.getFuelLevel());
+            if (inspection.getNotes() != null) booking.setCheckOutNotes(inspection.getNotes());
+            if (inspection.getPhotos() != null && !inspection.getPhotos().isEmpty()) {
+                booking.setCheckOutPhotos(inspection.getPhotos());
+            }
+        }
+
         Booking saved = bookingRepository.save(booking);
 
         notificationService.sendNotification(
                 booking.getOwnerId(),
-                "Car Returned - Inspection Needed",
-                "The car has been returned by the renter. Please inspect vehicle condition and mark booking completed.",
+                "Car Returned - Inspection Submitted",
+                "The car has been returned" + (booking.getTotalDistanceDriven() != null ? " (" + booking.getTotalDistanceDriven() + " km driven)" : "") + ". Please verify vehicle condition and mark booking completed.",
                 "CAR_RETURNED",
                 booking.getId()
         );
 
         return saved;
+    }
+
+    public Booking returnCar(String bookingId, String userId) {
+        return returnCar(bookingId, userId, null);
     }
 
     // ==========================================

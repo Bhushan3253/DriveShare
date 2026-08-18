@@ -34,8 +34,8 @@ export const bookingService = {
   },
 
   // Lifecycle transitions
-  checkIn: async (id) => {
-    const response = await api.put(`/api/bookings/${id}/check-in`);
+  checkIn: async (id, inspectionData) => {
+    const response = await api.put(`/api/bookings/${id}/check-in`, inspectionData || {});
     return response.data;
   },
 
@@ -44,8 +44,8 @@ export const bookingService = {
     return response.data;
   },
 
-  returnCar: async (id) => {
-    const response = await api.put(`/api/bookings/${id}/return`);
+  returnCar: async (id, inspectionData) => {
+    const response = await api.put(`/api/bookings/${id}/return`, inspectionData || {});
     return response.data;
   },
 
@@ -62,6 +62,12 @@ export const bookingService = {
   // Admin - All bookings
   getAllBookings: async () => {
     const response = await api.get('/api/admin/bookings');
+    return response.data;
+  },
+
+  // Admin - Force cancel booking
+  forceCancelBooking: async (bookingId, reason) => {
+    const response = await api.put(`/api/admin/bookings/${bookingId}/force-cancel`, { reason });
     return response.data;
   }
 };

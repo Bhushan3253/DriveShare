@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import paymentService from '../../services/paymentService';
+import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
-import { CreditCard, RefreshCw } from 'lucide-react';
+import { CreditCard, RefreshCw, Download } from 'lucide-react';
 
 const AdminPayments = () => {
+  const toast = useToast();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,6 +32,35 @@ const AdminPayments = () => {
     fetchPayments();
   }, []);
 
+  const exportToCSV = () => {
+    if (!filteredPayments.length) {
+      toast.warning('No payments to export.');
+      return;
+    }
+
+    const headers = ['Payment ID', 'Booking ID', 'Method', 'Amount', 'UTR Number', 'Status', 'Submitted At', 'Verified At'];
+    const rows = filteredPayments.map((p) => [
+      `"${p.id}"`,
+      `"${p.bookingId || ''}"`,
+      `"${p.paymentMethod || 'UPI'}"`,
+      p.amount || 0,
+      `"${p.utrNumber || ''}"`,
+      `"${p.status || ''}"`,
+      `"${p.submittedAt || p.createdAt || ''}"`,
+      `"${p.verifiedAt || ''}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `DriveShare_Payments_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Payments exported to CSV!');
+  };
+
   const filteredPayments = payments.filter((p) => {
     if (filter === 'ALL') return true;
     return p.status === filter;
@@ -46,18 +77,26 @@ const AdminPayments = () => {
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 flex-wrap" style={{ background: 'var(--bg-surface)', padding: '0.35rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-          {['ALL', 'PENDING_VERIFICATION', 'SUCCESS', 'REJECTED', 'PENDING'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`btn btn-sm ${filter === tab ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
-            >
-              {tab.replace('_', ' ')}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 flex-wrap" style={{ background: 'var(--bg-surface)', padding: '0.35rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+            {['ALL', 'PENDING_VERIFICATION', 'SUCCESS', 'REJECTED', 'PENDING'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`btn btn-sm ${filter === tab ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+              >
+                {tab.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={exportToCSV} className="btn btn-secondary btn-sm flex items-center gap-1.5" title="Export CSV">
+            <Download size={14} />
+            <span>Export CSV</span>
+          </button>
+
           <button onClick={fetchPayments} className="btn btn-secondary btn-sm" title="Refresh">
             <RefreshCw size={14} />
           </button>
