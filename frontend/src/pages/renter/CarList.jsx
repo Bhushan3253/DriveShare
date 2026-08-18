@@ -114,9 +114,17 @@ const CarList = () => {
         </button>
       </div>
 
-      <div className="flex gap-8 items-start">
-        {/* Sidebar Filters Desktop */}
-        <aside className={`car-filter-sidebar ${mobileFilterOpen ? 'mobile-filter-drawer' : 'desktop-only'}`}>
+      {/* Mobile Filter Backdrop */}
+      {mobileFilterOpen && (
+        <div
+          className="mobile-filter-backdrop animate-fade-in"
+          onClick={() => setMobileFilterOpen(false)}
+        />
+      )}
+
+      <div className="cars-page-layout">
+        {/* Sidebar Filters Desktop & Mobile Drawer */}
+        <aside className={`car-filter-sidebar ${mobileFilterOpen ? 'mobile-filter-drawer animate-slide-up' : 'desktop-only'}`}>
           <div className="flex items-center justify-between" style={{ marginBottom: '1.5rem', width: '100%' }}>
             <div className="flex items-center gap-2">
               <Filter size={18} style={{ color: 'var(--primary)' }} />
@@ -302,6 +310,49 @@ const CarList = () => {
           )}
         </main>
       </div>
+
+      <style>{`
+        .cars-page-layout {
+          display: flex;
+          gap: 2rem;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        @media (max-width: 859px) {
+          .cars-page-layout {
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .mobile-filter-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9998;
+          }
+
+          .car-filter-sidebar.mobile-filter-drawer {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            background: #0B0F19 !important;
+            z-index: 9999 !important;
+            padding: 1.5rem 1.25rem 5.5rem 1.25rem !important;
+            overflow-y: auto !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

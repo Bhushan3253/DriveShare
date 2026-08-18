@@ -7,7 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatCurrency, formatDate, parseUtcDate } from '../../utils/formatters';
 import {
   QrCode,
   Smartphone,
@@ -59,15 +59,18 @@ const Payment = () => {
         const upiData = await paymentService.createUPIPayment(bookingId);
         setPaymentSession(upiData);
 
-        // Setup 15-minute expiration countdown
+        // Setup 15-minute expiration countdown (parse UTC timestamps properly)
         const expiresAtTime = bookingData.expiresAt
-          ? new Date(bookingData.expiresAt).getTime()
-          : new Date(bookingData.createdAt || Date.now()).getTime() + 15 * 60 * 1000;
+          ? parseUtcDate(bookingData.expiresAt).getTime()
+          : parseUtcDate(bookingData.createdAt).getTime() + 15 * 60 * 1000;
 
         const diffSeconds = Math.max(0, Math.floor((expiresAtTime - Date.now()) / 1000));
         setTimeLeft(diffSeconds);
-        if (diffSeconds <= 0) {
+
+        if (bookingData.status === 'CANCELLED' || (diffSeconds <= 0 && bookingData.status === 'PAYMENT_PENDING')) {
           setIsExpired(true);
+        } else {
+          setIsExpired(false);
         }
       } catch (err) {
         console.error('Error initializing payment:', err);

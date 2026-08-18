@@ -56,3 +56,20 @@ export const truncateText = (text, maxLength = 60) => {
   if (!text) return '';
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
+
+/**
+ * Safely parse UTC timestamps from backend (handles missing 'Z' timezone suffix)
+ */
+export const parseUtcDate = (dateString) => {
+  if (!dateString) return new Date();
+  if (dateString instanceof Date) return dateString;
+  try {
+    const str = String(dateString).trim();
+    const hasTimezone = str.endsWith('Z') || /[+-]\d{2}(:\d{2})?$/.test(str);
+    const normalizedStr = hasTimezone ? str : `${str}Z`;
+    const parsed = new Date(normalizedStr);
+    return isNaN(parsed.getTime()) ? new Date(str) : parsed;
+  } catch {
+    return new Date(dateString);
+  }
+};
