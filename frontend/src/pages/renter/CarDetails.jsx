@@ -314,7 +314,7 @@ const CarDetails = () => {
             </div>
 
             {/* Specs Grid */}
-            <div className="grid grid-cols-4 gap-4" style={{ marginBottom: '2rem' }}>
+            <div className="grid grid-cols-4 gap-4" style={{ marginBottom: '1.5rem' }}>
               <div style={{ background: 'var(--bg-surface-raised)', padding: '1rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                 <Car size={20} style={{ margin: '0 auto 0.25rem', color: 'var(--primary)' }} />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Type</span>
@@ -338,6 +338,41 @@ const CarDetails = () => {
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Capacity</span>
                 <strong style={{ fontSize: '0.9rem' }}>{car.seats || 5} Seats</strong>
               </div>
+            </div>
+
+            {/* Verification & Compliance Trust Banner */}
+            <div
+              style={{
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1rem 1.25rem',
+                marginBottom: '2rem'
+              }}
+              className="flex items-center justify-between flex-wrap gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={24} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#6EE7B7' }}>
+                    Verified Private Host Vehicle
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Registration Certificate (RC) & Active Insurance verified by DriveShare admins.
+                  </div>
+                </div>
+              </div>
+
+              {car.registrationNumber && (
+                <div style={{ background: 'var(--bg-surface-raised)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>Plate Number</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', letterSpacing: '1px', color: 'var(--primary)' }}>
+                    {car.registrationNumber.length > 6
+                      ? `${car.registrationNumber.substring(0, 4)} •••• ${car.registrationNumber.substring(car.registrationNumber.length - 4)}`
+                      : car.registrationNumber}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Description */}

@@ -43,34 +43,65 @@ const CarCard = ({ car }) => {
             fontSize: '0.75rem',
             fontWeight: 700,
             color: '#FFFFFF',
+            border: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          <span>{car.year} • {car.type || 'Sedan'}</span>
+        </div>
+
+        {/* Verified Badge */}
+        {car.rcDocUrl && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(16, 185, 129, 0.9)',
+              backdropFilter: 'blur(8px)',
+              padding: '0.2rem 0.5rem',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              color: '#FFFFFF'
+            }}
+          >
+            ✓ Verified
+          </div>
+        )}
+
+        {/* Location & Masked Plate Badge */}
+        <div
+          className="flex items-center gap-1.5"
+          style={{
+            position: 'absolute',
+            bottom: '12px',
+            left: '12px',
+            background: 'rgba(17, 24, 39, 0.85)',
+            backdropFilter: 'blur(8px)',
+            padding: '0.25rem 0.6rem',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
             border: '1px solid var(--border-subtle)'
           }}
         >
-          {car.year} • {car.type || 'Sedan'}
+          <MapPin size={12} style={{ color: 'var(--primary)' }} />
+          <span>{car.location || 'City'}</span>
+          {car.registrationNumber && (
+            <>
+              <span style={{ opacity: 0.5 }}>•</span>
+              <span style={{ letterSpacing: '0.5px', color: 'var(--accent-cyan)' }}>
+                {car.registrationNumber.length > 6
+                  ? `${car.registrationNumber.substring(0, 4)} •••• ${car.registrationNumber.substring(car.registrationNumber.length - 4)}`
+                  : car.registrationNumber}
+              </span>
+            </>
+          )}
         </div>
-
-        {/* Location Badge */}
-        {car.location && (
-          <div
-            className="flex items-center gap-1"
-            style={{
-              position: 'absolute',
-              bottom: '12px',
-              left: '12px',
-              background: 'rgba(17, 24, 39, 0.85)',
-              backdropFilter: 'blur(8px)',
-              padding: '0.25rem 0.6rem',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)'
-            }}
-          >
-            <MapPin size={12} style={{ color: 'var(--primary)' }} />
-            <span>{car.location}</span>
-          </div>
-        )}
       </div>
 
       {/* Card Content */}

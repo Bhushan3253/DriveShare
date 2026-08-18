@@ -134,8 +134,15 @@ const OwnerBookings = () => {
                             <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                               {car ? `${car.brand} ${car.model}` : 'Vehicle'}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              Booking #{b.id.substring(Math.max(0, b.id.length - 8))}
+                            <div className="flex items-center gap-1.5" style={{ marginTop: '2px' }}>
+                              {car?.registrationNumber && (
+                                <span className="badge badge-purple" style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', letterSpacing: '0.5px' }}>
+                                  {car.registrationNumber}
+                                </span>
+                              )}
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                #{b.id.substring(Math.max(0, b.id.length - 6))}
+                              </span>
                             </div>
                           </div>
                         </div>

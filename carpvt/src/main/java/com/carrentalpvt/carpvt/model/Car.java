@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,31 @@ public class Car {
     private String model;
 
     private int year;
+
+    // Unique Vehicle Registration / License Plate Number (e.g. MH 12 AB 1234)
+    @Indexed(unique = true)
+    private String registrationNumber;
+
+    // Optional Chassis / VIN
+    private String chassisNumber;
+
+    // Insurance Information
+    private String insurancePolicyNumber;
+
+    private LocalDate insuranceExpiry;
+
+    // Pollution Under Control (PUC) Expiry
+    private LocalDate pucExpiry;
+
+    // Compliance Document URLs & Cloudinary Public IDs
+    private String rcDocUrl;
+    private String rcDocPublicId;
+
+    private String insuranceDocUrl;
+    private String insuranceDocPublicId;
+
+    private String pucDocUrl;
+    private String pucDocPublicId;
 
     @Indexed
     private String type;
@@ -73,4 +99,8 @@ public class Car {
     private double averageRating = 0.0;
 
     private int reviewCount = 0;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

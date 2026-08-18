@@ -1,9 +1,11 @@
 package com.carrentalpvt.carpvt.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,16 @@ public class CarService {
     }
 
     public Car addCar(Car car) {
+        if (car.getRegistrationNumber() == null || car.getRegistrationNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Vehicle registration number is required.");
+        }
+
+        String normalizedReg = car.getRegistrationNumber().trim().toUpperCase().replaceAll("\\s+", " ");
+        if (carRepository.existsByRegistrationNumber(normalizedReg)) {
+            throw new IllegalArgumentException("A vehicle with registration number '" + normalizedReg + "' is already registered in the system.");
+        }
+        car.setRegistrationNumber(normalizedReg);
+
         car.setStatus("PENDING");
         car.setActive(false);
         if (car.getImages() == null) {
@@ -262,6 +274,142 @@ public class CarService {
             throw new ResourceNotFoundException("Image with publicId not found: " + publicId);
         }
 
+        return carRepository.save(car);
+    }
+
+    // ==========================================
+    // CAR DETAILS UPDATE
+    // ==========================================
+
+    public Car updateCar(String carId, Car updatedData, String userId, boolean isAdmin) {
+        Car car = getCarById(carId);
+
+        if (!isAdmin && !car.getOwnerId().equals(userId)) {
+            throw new AccessDeniedException("You are not authorized to edit this car listing");
+        }
+
+        if (updatedData.getRegistrationNumber() != null && !updatedData.getRegistrationNumber().trim().isEmpty()) {
+            String normalizedReg = updatedData.getRegistrationNumber().trim().toUpperCase().replaceAll("\\s+", " ");
+            if (!normalizedReg.equalsIgnoreCase(car.getRegistrationNumber())) {
+                Optional<Car> existing = carRepository.findByRegistrationNumber(normalizedReg);
+                if (existing.isPresent() && !existing.get().getId().equals(carId)) {
+                    throw new IllegalArgumentException("A vehicle with registration number '" + normalizedReg + "' is already registered.");
+                }
+                car.setRegistrationNumber(normalizedReg);
+            }
+        }
+
+        if (updatedData.getBrand() != null) car.setBrand(updatedData.getBrand());
+        if (updatedData.getModel() != null) car.setModel(updatedData.getModel());
+        if (updatedData.getYear() > 0) car.setYear(updatedData.getYear());
+        if (updatedData.getType() != null) car.setType(updatedData.getType());
+        if (updatedData.getFuelType() != null) car.setFuelType(updatedData.getFuelType());
+        if (updatedData.getTransmission() != null) car.setTransmission(updatedData.getTransmission());
+        if (updatedData.getSeats() > 0) car.setSeats(updatedData.getSeats());
+        if (updatedData.getPricePerDay() > 0) car.setPricePerDay(updatedData.getPricePerDay());
+        if (updatedData.getLocation() != null) car.setLocation(updatedData.getLocation());
+        if (updatedData.getDescription() != null) car.setDescription(updatedData.getDescription());
+        if (updatedData.getChassisNumber() != null) car.setChassisNumber(updatedData.getChassisNumber());
+        if (updatedData.getInsurancePolicyNumber() != null) car.setInsurancePolicyNumber(updatedData.getInsurancePolicyNumber());
+        if (updatedData.getInsuranceExpiry() != null) car.setInsuranceExpiry(updatedData.getInsuranceExpiry());
+        if (updatedData.getPucExpiry() != null) car.setPucExpiry(updatedData.getPucExpiry());
+
+        // If car was previously rejected, re-submitting sets it back to PENDING for admin review
+        if ("REJECTED".equals(car.getStatus())) {
+            car.setStatus("PENDING");
+            car.setActive(false);
+            car.setRejectionReason(null);
+        }
+
+        car.setUpdatedAt(LocalDateTime.now());
+        return carRepository.save(car);
+    }
+
+    // ==========================================
+    // VEHICLE COMPLIANCE DOCUMENTS MANAGEMENT
+    // ==========================================
+
+    public Car uploadCarDocument(String carId, String ownerId, String docType, MultipartFile file) {
+        Car car = getCarById(carId);
+
+        if (!car.getOwnerId().equals(ownerId)) {
+            throw new AccessDeniedException("You are not authorized to upload documents for this car");
+        }
+
+        if (docType == null || docType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Document type (RC, INSURANCE, or PUC) is required");
+        }
+
+        String type = docType.trim().toUpperCase();
+        Map<String, String> uploadResult = cloudinaryService.uploadDocument(file, "documents");
+        String url = uploadResult.get("url");
+        String publicId = uploadResult.get("publicId");
+
+        switch (type) {
+            case "RC":
+                if (car.getRcDocPublicId() != null) {
+                    try { cloudinaryService.deleteImage(car.getRcDocPublicId()); } catch (Exception ignored) {}
+                }
+                car.setRcDocUrl(url);
+                car.setRcDocPublicId(publicId);
+                break;
+            case "INSURANCE":
+                if (car.getInsuranceDocPublicId() != null) {
+                    try { cloudinaryService.deleteImage(car.getInsuranceDocPublicId()); } catch (Exception ignored) {}
+                }
+                car.setInsuranceDocUrl(url);
+                car.setInsuranceDocPublicId(publicId);
+                break;
+            case "PUC":
+                if (car.getPucDocPublicId() != null) {
+                    try { cloudinaryService.deleteImage(car.getPucDocPublicId()); } catch (Exception ignored) {}
+                }
+                car.setPucDocUrl(url);
+                car.setPucDocPublicId(publicId);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported document type: " + docType + ". Must be RC, INSURANCE, or PUC.");
+        }
+
+        car.setUpdatedAt(LocalDateTime.now());
+        return carRepository.save(car);
+    }
+
+    public Car deleteCarDocument(String carId, String ownerId, String docType) {
+        Car car = getCarById(carId);
+
+        if (!car.getOwnerId().equals(ownerId)) {
+            throw new AccessDeniedException("You are not authorized to delete documents for this car");
+        }
+
+        String type = docType != null ? docType.trim().toUpperCase() : "";
+        switch (type) {
+            case "RC":
+                if (car.getRcDocPublicId() != null) {
+                    cloudinaryService.deleteImage(car.getRcDocPublicId());
+                    car.setRcDocUrl(null);
+                    car.setRcDocPublicId(null);
+                }
+                break;
+            case "INSURANCE":
+                if (car.getInsuranceDocPublicId() != null) {
+                    cloudinaryService.deleteImage(car.getInsuranceDocPublicId());
+                    car.setInsuranceDocUrl(null);
+                    car.setInsuranceDocPublicId(null);
+                }
+                break;
+            case "PUC":
+                if (car.getPucDocPublicId() != null) {
+                    cloudinaryService.deleteImage(car.getPucDocPublicId());
+                    car.setPucDocUrl(null);
+                    car.setPucDocPublicId(null);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported document type: " + docType);
+        }
+
+        car.setUpdatedAt(LocalDateTime.now());
         return carRepository.save(car);
     }
 }

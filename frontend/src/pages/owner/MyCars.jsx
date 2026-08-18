@@ -137,9 +137,16 @@ const MyCars = () => {
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
                         {car.brand} {car.model}
                       </h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                        {car.year} • {car.type} • {car.fuelType}
-                      </p>
+                      <div className="flex items-center gap-2" style={{ marginTop: '2px' }}>
+                        {car.registrationNumber && (
+                          <span className="badge badge-purple" style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', letterSpacing: '0.5px' }}>
+                            {car.registrationNumber}
+                          </span>
+                        )}
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          {car.year} • {car.type}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

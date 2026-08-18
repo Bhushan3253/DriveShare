@@ -201,37 +201,46 @@ const MyBookings = () => {
                     )}
                   </div>
 
-                  {/* Booking Details */}
-                  <div className="flex-1" style={{ minWidth: '220px' }}>
-                    <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>
-                        {car ? `${car.brand} ${car.model}` : 'Vehicle Booking'}
-                      </h3>
-                      <StatusBadge status={b.status} />
-                    </div>
+                    {/* Booking Details */}
+                    <div className="flex-1" style={{ minWidth: '220px' }}>
+                      <div className="flex items-center gap-3 flex-wrap" style={{ marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>
+                          {car ? `${car.brand} ${car.model}` : 'Vehicle Booking'}
+                        </h3>
+                        <StatusBadge status={b.status} />
+                        {car?.registrationNumber && (
+                          <span
+                            className="badge badge-purple"
+                            style={{ fontSize: '0.75rem', letterSpacing: '1px', fontWeight: 700 }}
+                            title="Vehicle Registration Plate"
+                          >
+                            🚗 {car.registrationNumber}
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="flex items-center gap-4 flex-wrap" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} style={{ color: 'var(--primary)' }} />
-                        {formatDate(b.startDate)} → {formatDate(b.endDate)} ({b.totalDays} {b.totalDays === 1 ? 'day' : 'days'})
-                      </span>
-                      {car?.location && (
-                        <span>📍 {car.location}</span>
-                      )}
-                    </div>
+                      <div className="flex items-center gap-4 flex-wrap" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} style={{ color: 'var(--primary)' }} />
+                          {formatDate(b.startDate)} → {formatDate(b.endDate)} ({b.totalDays} {b.totalDays === 1 ? 'day' : 'days'})
+                        </span>
+                        {car?.location && (
+                          <span>📍 {car.location}</span>
+                        )}
+                      </div>
 
-                    <div className="flex items-center gap-4 flex-wrap" style={{ fontSize: '0.85rem' }}>
-                      <span>
-                        Total: <strong style={{ color: 'var(--primary)' }}>{formatCurrency(b.totalPrice)}</strong>
-                      </span>
-                      <span>
-                        Payment: <StatusBadge status={b.paymentStatus || 'UNPAID'} />
-                      </span>
-                      <span style={{ color: 'var(--text-muted)' }}>
-                        Booked: {formatDateTime(b.createdAt)}
-                      </span>
+                      <div className="flex items-center gap-4 flex-wrap" style={{ fontSize: '0.85rem' }}>
+                        <span>
+                          Total: <strong style={{ color: 'var(--primary)' }}>{formatCurrency(b.totalAmount || b.totalPrice)}</strong>
+                        </span>
+                        <span>
+                          Payment: <StatusBadge status={b.paymentStatus || 'UNPAID'} />
+                        </span>
+                        <span style={{ color: 'var(--text-muted)' }}>
+                          Booked: {formatDateTime(b.createdAt)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
                   {/* Actions Column */}
                   <div className="flex flex-col gap-2 items-end justify-center" style={{ minWidth: '160px', marginLeft: 'auto' }}>

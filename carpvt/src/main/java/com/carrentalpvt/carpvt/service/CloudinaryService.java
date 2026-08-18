@@ -54,6 +54,40 @@ public class CloudinaryService {
         }
     }
 
+    public Map<String, String> uploadDocument(MultipartFile file, String subfolder) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Document file cannot be empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("Document file size cannot exceed 10 MB");
+        }
+
+        String folder = (subfolder != null && !subfolder.trim().isEmpty())
+                ? "car-rental/" + subfolder.trim()
+                : "car-rental/documents";
+
+        try {
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", folder,
+                            "resource_type", "auto"
+                    )
+            );
+
+            String secureUrl = (String) uploadResult.get("secure_url");
+            String publicId = (String) uploadResult.get("public_id");
+
+            return Map.of(
+                    "url", secureUrl,
+                    "publicId", publicId
+            );
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload document to Cloudinary", e);
+        }
+    }
+
     public void deleteImage(String publicId) {
         if (publicId == null || publicId.trim().isEmpty()) {
             throw new IllegalArgumentException("Image publicId is required for deletion");

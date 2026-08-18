@@ -37,6 +37,33 @@ export const carService = {
     return response.data;
   },
 
+  // Owner - Update car details
+  updateCar: async (carId, carData) => {
+    const response = await api.put(`/api/cars/${carId}`, carData);
+    return response.data;
+  },
+
+  // Owner - Upload compliance document (RC, INSURANCE, PUC)
+  uploadCarDocument: async (carId, docType, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/api/cars/${carId}/documents`, formData, {
+      params: { type: docType },
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  // Owner - Delete compliance document
+  deleteCarDocument: async (carId, docType) => {
+    const response = await api.delete(`/api/cars/${carId}/documents`, {
+      params: { type: docType }
+    });
+    return response.data;
+  },
+
   // Owner - Upload car image (Cloudinary)
   uploadCarImage: async (carId, file) => {
     const formData = new FormData();

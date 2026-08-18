@@ -134,6 +134,44 @@ public class CarController {
         return carService.setPrimaryImage(carId, publicId, ownerId);
     }
 
+    @PutMapping("/{id}")
+    public Car updateCar(
+            @PathVariable String id,
+            @RequestBody Car car,
+            Authentication authentication) {
+
+        String userId = requireAuthenticatedUserId(authentication);
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+
+        return carService.updateCar(id, car, userId, isAdmin);
+    }
+
+    // ==========================================
+    // CLOUDINARY COMPLIANCE DOCUMENT ENDPOINTS
+    // ==========================================
+
+    @PostMapping("/{carId}/documents")
+    public Car uploadCarDocument(
+            @PathVariable String carId,
+            @RequestParam("type") String docType,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+
+        String ownerId = requireAuthenticatedUserId(authentication);
+        return carService.uploadCarDocument(carId, ownerId, docType, file);
+    }
+
+    @DeleteMapping("/{carId}/documents")
+    public Car deleteCarDocument(
+            @PathVariable String carId,
+            @RequestParam("type") String docType,
+            Authentication authentication) {
+
+        String ownerId = requireAuthenticatedUserId(authentication);
+        return carService.deleteCarDocument(carId, ownerId, docType);
+    }
+
     private String requireAuthenticatedUserId(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new AuthenticationCredentialsNotFoundException("Authentication required");
