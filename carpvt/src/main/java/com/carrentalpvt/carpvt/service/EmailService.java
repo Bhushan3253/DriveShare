@@ -31,6 +31,15 @@ public class EmailService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
+    @Value("${brevo.sender.email:bhushannagpure25@gmail.com}")
+    private String brevoSenderEmail;
+
+    @Value("${brevo.sender.name:DriveShare Car Rental}")
+    private String brevoSenderName;
+
     @Value("${resend.api.key:}")
     private String resendApiKey;
 
@@ -50,7 +59,15 @@ public class EmailService {
         String htmlContent = buildVerificationEmailHtml(userName, verificationUrl);
         String textContent = buildVerificationEmailText(userName, verificationUrl);
 
-        // 1. First Priority: Send via Resend HTTP REST API (Port 443 - 100% works on Render Cloud)
+        // 1. First Priority: Send via Brevo HTTP REST API (Sends to ANY recipient on web, works 100% on Render Cloud)
+        if (brevoApiKey != null && !brevoApiKey.trim().isEmpty()) {
+            boolean sent = sendViaBrevo(toEmail, userName, subject, htmlContent, textContent);
+            if (sent) {
+                return;
+            }
+        }
+
+        // 2. Second Priority: Send via Resend HTTP REST API
         if (resendApiKey != null && !resendApiKey.trim().isEmpty()) {
             boolean sent = sendViaResend(toEmail, subject, htmlContent, textContent);
             if (sent) {
@@ -84,6 +101,46 @@ public class EmailService {
         log.info("🔗 VERIFICATION LINK: {}", verificationUrl);
         log.info("⏱️ EXPIRES IN: 30 minutes");
         log.info("================================================================================");
+    }
+
+    private boolean sendViaBrevo(String toEmail, String userName, String subject, String htmlContent, String textContent) {
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            Map<String, Object> payload = Map.of(
+                    "sender", Map.of("name", brevoSenderName, "email", brevoSenderEmail),
+                    "to", List.of(Map.of("email", toEmail, "name", userName != null ? userName : "User")),
+                    "subject", subject,
+                    "htmlContent", htmlContent,
+                    "textContent", textContent
+            );
+
+            String jsonBody = objectMapper.writeValueAsString(payload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                    .header("api-key", brevoApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("✓ Verification email successfully delivered via Brevo HTTP API (Port 443) to: {}", toEmail);
+                return true;
+            } else {
+                log.warn("⚠️ Brevo HTTP API responded with status {}: {}", response.statusCode(), response.body());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("❌ Brevo API delivery error to {}: {}", toEmail, e.getMessage(), e);
+            return false;
+        }
     }
 
     private boolean sendViaResend(String toEmail, String subject, String htmlContent, String textContent) {
