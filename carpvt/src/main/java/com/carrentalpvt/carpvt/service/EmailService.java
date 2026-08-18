@@ -1,5 +1,6 @@
 package com.carrentalpvt.carpvt.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailService {
@@ -21,8 +31,16 @@ public class EmailService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
+
+    @Value("${resend.from:DriveShare <onboarding@resend.dev>}")
+    private String resendFrom;
+
     @Value("${spring.mail.username:bhushannagpure25@gmail.com}")
     private String mailUsername;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Async("taskExecutor")
     public void sendVerificationEmail(String toEmail, String userName, String rawToken) {
@@ -32,7 +50,15 @@ public class EmailService {
         String htmlContent = buildVerificationEmailHtml(userName, verificationUrl);
         String textContent = buildVerificationEmailText(userName, verificationUrl);
 
-        // If SMTP credentials are configured and mailSender exists, send via JavaMailSender
+        // 1. First Priority: Send via Resend HTTP REST API (Port 443 - 100% works on Render Cloud)
+        if (resendApiKey != null && !resendApiKey.trim().isEmpty()) {
+            boolean sent = sendViaResend(toEmail, subject, htmlContent, textContent);
+            if (sent) {
+                return;
+            }
+        }
+
+        // 2. Second Priority: Send via JavaMailSender SMTP (if local / unblocked)
         if (mailSender != null && mailUsername != null && !mailUsername.trim().isEmpty()) {
             try {
                 MimeMessage message = mailSender.createMimeMessage();
@@ -48,16 +74,55 @@ public class EmailService {
                 log.info("✓ Verification email successfully sent via SMTP to: {}", toEmail);
                 return;
             } catch (Exception e) {
-                log.error("❌ SMTP Delivery Failed to {}: {}. Will log fallback link.", toEmail, e.getMessage(), e);
+                log.warn("⚠️ SMTP Delivery Failed to {}: {}. Falling back to console link.", toEmail, e.getMessage());
             }
         }
 
-        // Development / Console Fallback Logger
+        // 3. Fallback: Console Logger for Diagnostics
         log.info("================================================================================");
         log.info("📧 [EMAIL DISPATCHED] To: {} | Subject: {}", toEmail, subject);
         log.info("🔗 VERIFICATION LINK: {}", verificationUrl);
         log.info("⏱️ EXPIRES IN: 30 minutes");
         log.info("================================================================================");
+    }
+
+    private boolean sendViaResend(String toEmail, String subject, String htmlContent, String textContent) {
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            Map<String, Object> payload = Map.of(
+                    "from", resendFrom,
+                    "to", List.of(toEmail),
+                    "subject", subject,
+                    "html", htmlContent,
+                    "text", textContent
+            );
+
+            String jsonBody = objectMapper.writeValueAsString(payload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("✓ Verification email successfully delivered via Resend HTTP API to: {}", toEmail);
+                return true;
+            } else {
+                log.warn("⚠️ Resend HTTP API responded with status {}: {}", response.statusCode(), response.body());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("❌ Resend API delivery error to {}: {}", toEmail, e.getMessage(), e);
+            return false;
+        }
     }
 
     private String buildVerificationEmailText(String userName, String verificationUrl) {
