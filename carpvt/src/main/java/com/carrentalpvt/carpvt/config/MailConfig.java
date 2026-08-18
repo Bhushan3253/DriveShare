@@ -14,13 +14,13 @@ public class MailConfig {
     @Value("${spring.mail.host:smtp.gmail.com}")
     private String host;
 
-    @Value("${spring.mail.port:587}")
+    @Value("${spring.mail.port:465}")
     private int port;
 
     @Value("${spring.mail.username:bhushannagpure25@gmail.com}")
     private String username;
 
-    @Value("${spring.mail.password:pvcynstudshdrfml}")
+    @Value("${spring.mail.password:fzfukmqjvjeeevdq}")
     private String password;
 
     @Bean
@@ -40,8 +40,17 @@ public class MailConfig {
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
+
+        if (port == 465) {
+            props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.socketFactory.port", "465");
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.fallback", "false");
+        } else {
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.starttls.required", "true");
+        }
+
         props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
         props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
         props.put("mail.smtp.connectiontimeout", "10000");
