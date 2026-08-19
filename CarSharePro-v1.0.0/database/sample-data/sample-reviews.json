@@ -1,0 +1,26 @@
+[
+  {
+    "carRating": 5,
+    "ownerRating": 5,
+    "comment": "Incredible experience! The Mahindra XUV700 was delivered in spotless condition. Host communication was instant and friendly.",
+    "createdAt": "2026-08-10T14:30:00.000Z"
+  },
+  {
+    "carRating": 5,
+    "ownerRating": 5,
+    "comment": "Smooth pickup in Bandra, luxurious drive, and superb highway stability. Highly recommend this superhost for weekend road trips!",
+    "createdAt": "2026-08-12T18:45:00.000Z"
+  },
+  {
+    "carRating": 5,
+    "ownerRating": 5,
+    "comment": "Top-tier vehicle condition with panoramic sunroof and great mileage. 5-star experience from booking hold to return check-out.",
+    "createdAt": "2026-08-15T09:15:00.000Z"
+  },
+  {
+    "carRating": 5,
+    "ownerRating": 5,
+    "comment": "Very well maintained luxury car with complete ADAS safety features. Clean handoff and easy key drop.",
+    "createdAt": "2026-08-18T16:20:00.000Z"
+  }
+]

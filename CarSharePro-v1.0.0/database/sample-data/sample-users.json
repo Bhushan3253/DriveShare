@@ -1,0 +1,33 @@
+[
+  {
+    "name": "System Admin",
+    "email": "admin@driveshare.com",
+    "role": "ADMIN",
+    "isCarOwner": true,
+    "phone": "+91 9876543210",
+    "emailVerified": true,
+    "kycVerified": true,
+    "enabled": true
+  },
+  {
+    "name": "Siddharth Mehra (Superhost)",
+    "email": "owner@driveshare.com",
+    "role": "OWNER",
+    "isCarOwner": true,
+    "phone": "+91 9820098200",
+    "emailVerified": true,
+    "kycVerified": true,
+    "enabled": true
+  },
+  {
+    "name": "Pooja Sharma (Verified Driver)",
+    "email": "renter@driveshare.com",
+    "role": "USER",
+    "isCarOwner": false,
+    "phone": "+91 9123456789",
+    "emailVerified": true,
+    "kycVerified": true,
+    "drivingLicenseNumber": "DL-0420180012345",
+    "enabled": true
+  }
+]

@@ -1,0 +1,21 @@
+COMMERCIAL SOURCE CODE LICENSE AGREEMENT
+
+Product: CarSharePro – Car Rental & Peer-to-Peer Car Sharing Platform
+Marketplace: SellMyCode
+
+1. GRANT OF LICENSE
+Subject to the terms of the marketplace purchase agreement, the Author grants the Purchaser a non-exclusive, non-transferable license to use, customize, modify, and deploy the source code of this software.
+
+2. LICENSE TIERS
+- REGULAR LICENSE: Grants the purchaser the right to create one (1) single end product for personal or commercial use (for themselves or one client) where end users are not charged a fee for the core software itself.
+- EXTENDED LICENSE: Grants the purchaser the right to create one (1) single end product for personal or commercial use where end users can be charged for access or subscription services.
+
+3. RESTRICTIONS
+- The Purchaser MAY NOT redistribute, resell, sublicense, lease, rent, or make publicly available the source code or any portion thereof as a standalone stock item or template on any marketplace, website, repository, or distribution network.
+- The Purchaser MAY NOT claim original authorship of the unmodified source code.
+
+4. THIRD-PARTY COMPONENTS & LIBRARIES
+Third-party libraries, frameworks, icons, and dependencies included or referenced in this software (such as Spring Boot, React, Vite, Leaflet, Lucide, Capacitor, ZXing) remain subject to their respective open-source licenses (MIT, Apache 2.0, BSD).
+
+5. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
