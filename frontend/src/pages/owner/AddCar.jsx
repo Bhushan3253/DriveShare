@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import carService from '../../services/carService';
 import ErrorMessage from '../../components/ErrorMessage';
+import LocationPicker from '../../components/map/LocationPicker';
 import { compressImage } from '../../utils/imageCompressor';
 import { CAR_TYPES, FUEL_TYPES, TRANSMISSIONS } from '../../utils/constants';
 import {
@@ -30,6 +31,9 @@ const AddCar = () => {
     seats: 5,
     pricePerDay: '',
     location: '',
+    locationName: '',
+    latitude: null,
+    longitude: null,
     description: '',
     registrationNumber: '',
     chassisNumber: '',
@@ -110,9 +114,16 @@ const AddCar = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.brand || !formData.model || !formData.pricePerDay || !formData.location || !formData.registrationNumber) {
-      setError('Please fill in all required vehicle details, including registration number.');
+    if (!formData.brand || !formData.model || !formData.pricePerDay || (!formData.location && !formData.locationName) || !formData.registrationNumber) {
+      setError('Please fill in all required vehicle details, including registration number and pickup location.');
       return;
+    }
+
+    if (formData.latitude !== null && formData.longitude !== null) {
+      if (formData.latitude < -90 || formData.latitude > 90 || formData.longitude < -180 || formData.longitude > 180) {
+        setError('Invalid geographic coordinates. Latitude must be between -90 and 90, Longitude between -180 and 180.');
+        return;
+      }
     }
 
     try {
@@ -123,6 +134,8 @@ const AddCar = () => {
       // 1. Create Car Entity
       const payload = {
         ...formData,
+        location: formData.locationName || formData.location,
+        locationName: formData.locationName || formData.location,
         registrationNumber: formData.registrationNumber.trim().toUpperCase()
       };
       const newCar = await carService.addCar(payload);
@@ -354,16 +367,22 @@ const AddCar = () => {
                   </div>
                 </div>
 
-                <div className="form-group" style={{ marginTop: '1rem' }}>
-                  <label className="form-label">City & Pickup Area *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    required
-                    className="form-input"
-                    placeholder="e.g. Bandra West, Mumbai"
-                    value={formData.location}
-                    onChange={handleChange}
+                <div style={{ marginTop: '1.25rem', marginBottom: '1.25rem' }}>
+                  <LocationPicker
+                    latitude={formData.latitude}
+                    longitude={formData.longitude}
+                    locationName={formData.locationName || formData.location}
+                    required={true}
+                    onChange={({ latitude, longitude, locationName }) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        latitude,
+                        longitude,
+                        locationName,
+                        location: locationName
+                      }));
+                      if (error) setError('');
+                    }}
                   />
                 </div>
 

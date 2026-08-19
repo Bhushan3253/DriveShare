@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import carService from '../../services/carService';
 import CarCard from '../../components/CarCard';
 import SkeletonCard from '../../components/SkeletonCard';
 import ErrorMessage from '../../components/ErrorMessage';
 import Pagination from '../../components/Pagination';
+import CarMap from '../../components/map/CarMap';
+import { getUserCurrentPosition } from '../../utils/distance';
 import { CAR_TYPES, FUEL_TYPES, TRANSMISSIONS } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -25,6 +27,7 @@ import {
 
 const CarList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,25 +111,16 @@ const CarList = () => {
     carService.getAvailableCars().then((data) => setCars(data || [])).catch(console.error);
   };
 
-  const handleNearMeGPS = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your device browser.');
-      return;
+  const handleNearMeGPS = async () => {
+    try {
+      setGeoLocating(true);
+      await getUserCurrentPosition();
+      navigate('/nearby?radius=15');
+    } catch (err) {
+      alert(err.message || 'Unable to retrieve your location. Please check location permissions.');
+    } finally {
+      setGeoLocating(false);
     }
-    setGeoLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setGeoLocating(false);
-        // Default to active metro cities or detected area
-        setLocation('Nearby (GPS Detected)');
-        fetchCars();
-      },
-      (err) => {
-        setGeoLocating(false);
-        alert('Unable to retrieve your location. Please type your city manually.');
-      },
-      { timeout: 10000 }
-    );
   };
 
   // Sort logic
@@ -380,108 +374,46 @@ const CarList = () => {
               ))}
             </div>
           ) : viewMode === 'MAP' ? (
-            /* MAP EXPLORER VIEW */
+            /* REAL INTERACTIVE LEAFLET OPENSTREETMAP VIEW */
             <div
               style={{
                 background: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-lg)',
                 border: '1px solid var(--border-subtle)',
-                padding: '1.5rem',
-                minHeight: '480px'
+                padding: '1.25rem',
+                minHeight: '520px'
               }}
             >
-              <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: '1rem' }}>
                 <div className="flex items-center gap-2">
                   <MapIcon size={20} style={{ color: 'var(--primary)' }} />
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Interactive Vehicle Map</h3>
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Click on any pin to view details
-                </span>
+                <Link
+                  to="/nearby?radius=20"
+                  className="btn btn-secondary btn-sm flex items-center gap-1"
+                  style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}
+                >
+                  <Navigation size={13} />
+                  <span>Open Full Nearby Map</span>
+                </Link>
               </div>
 
-              {/* Styled Interactive Map Canvas Mock */}
               <div
                 style={{
-                  position: 'relative',
-                  height: '380px',
+                  height: '460px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)',
                   overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   border: '1px solid var(--border-subtle)'
                 }}
               >
-                {/* Decorative Map Grid Lines */}
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-
-                {/* Map Pins */}
-                {cars.map((c, idx) => {
-                  const offsets = [
-                    { top: '30%', left: '25%' },
-                    { top: '45%', left: '55%' },
-                    { top: '65%', left: '35%' },
-                    { top: '25%', left: '70%' },
-                    { top: '60%', left: '75%' },
-                    { top: '40%', left: '40%' }
-                  ];
-                  const pos = offsets[idx % offsets.length];
-
-                  return (
-                    <div
-                      key={c.id}
-                      onClick={() => setSelectedMapCar(c)}
-                      style={{
-                        position: 'absolute',
-                        top: pos.top,
-                        left: pos.left,
-                        cursor: 'pointer',
-                        transform: 'translate(-50%, -50%)',
-                        zIndex: 10
-                      }}
-                      className="animate-bounce"
-                    >
-                      <div
-                        style={{
-                          background: selectedMapCar?.id === c.id ? '#3B82F6' : '#111827',
-                          color: '#fff',
-                          border: '2px solid #3B82F6',
-                          borderRadius: 'var(--radius-full)',
-                          padding: '4px 10px',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        <Car size={12} />
-                        <span>{formatCurrency(c.pricePerDay)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Selected Car Float Modal on Map */}
-                {selectedMapCar && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 16,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      zIndex: 30,
-                      width: '90%',
-                      maxWidth: '340px'
-                    }}
-                    className="animate-slide-up"
-                  >
-                    <CarCard car={selectedMapCar} />
-                  </div>
-                )}
+                <CarMap
+                  cars={cars}
+                  selectedCar={selectedMapCar}
+                  onSelectCar={setSelectedMapCar}
+                  showRadiusCircle={false}
+                  height="100%"
+                />
               </div>
             </div>
           ) : cars.length > 0 ? (

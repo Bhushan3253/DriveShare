@@ -7,6 +7,12 @@ export const carService = {
     return response.data;
   },
 
+  // Public - Discover nearby cars via geospatial query
+  getNearbyCars: async (params = {}) => {
+    const response = await api.get('/api/cars/nearby', { params });
+    return response.data;
+  },
+
   // Public - Get all available approved cars
   getAvailableCars: async () => {
     const response = await api.get('/api/cars/available');

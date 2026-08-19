@@ -7,10 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.NearQuery;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.carrentalpvt.carpvt.dto.NearbyCarResponse;
 import com.carrentalpvt.carpvt.exception.ResourceNotFoundException;
 import com.carrentalpvt.carpvt.model.Booking;
 import com.carrentalpvt.carpvt.model.Car;
@@ -27,17 +37,20 @@ public class CarService {
     private final CloudinaryService cloudinaryService;
     private final CarAvailabilityRepository availabilityRepository;
     private final BookingRepository bookingRepository;
+    private final MongoTemplate mongoTemplate;
 
     public CarService(
             CarRepository carRepository,
             CloudinaryService cloudinaryService,
             CarAvailabilityRepository availabilityRepository,
-            BookingRepository bookingRepository) {
+            BookingRepository bookingRepository,
+            MongoTemplate mongoTemplate) {
 
         this.carRepository = carRepository;
         this.cloudinaryService = cloudinaryService;
         this.availabilityRepository = availabilityRepository;
         this.bookingRepository = bookingRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public Car addCar(Car car) {
@@ -50,6 +63,22 @@ public class CarService {
             throw new IllegalArgumentException("A vehicle with registration number '" + normalizedReg + "' is already registered in the system.");
         }
         car.setRegistrationNumber(normalizedReg);
+
+        // Synchronize and validate geographic coordinates
+        if (car.getLatitude() != null && car.getLongitude() != null) {
+            validateCoordinates(car.getLatitude(), car.getLongitude());
+            car.setCoordinates(new GeoJsonPoint(car.getLongitude(), car.getLatitude()));
+        } else if (car.getCoordinates() != null) {
+            validateCoordinates(car.getCoordinates().getY(), car.getCoordinates().getX());
+            car.setLatitude(car.getCoordinates().getY());
+            car.setLongitude(car.getCoordinates().getX());
+        }
+
+        if (car.getLocationName() == null && car.getLocation() != null) {
+            car.setLocationName(car.getLocation());
+        } else if (car.getLocation() == null && car.getLocationName() != null) {
+            car.setLocation(car.getLocationName());
+        }
 
         car.setStatus("PENDING");
         car.setActive(false);
@@ -188,6 +217,193 @@ public class CarService {
     }
 
     // ==========================================
+    // GEOSPATIAL NEARBY CAR DISCOVERY
+    // ==========================================
+
+    public List<NearbyCarResponse> findNearbyCars(
+            Double latitude,
+            Double longitude,
+            Double radiusKm,
+            LocalDate startDate,
+            LocalDate endDate,
+            String brand,
+            String type,
+            String fuelType,
+            String transmission,
+            Double minPrice,
+            Double maxPrice,
+            String currentUserId) {
+
+        if (latitude == null || longitude == null) {
+            throw new IllegalArgumentException("Latitude and longitude query parameters are required for nearby car discovery.");
+        }
+
+        validateCoordinates(latitude, longitude);
+
+        double effectiveRadius = (radiusKm != null && radiusKm > 0) ? radiusKm : 10.0;
+        if (effectiveRadius > 500.0) {
+            throw new IllegalArgumentException("Search radius cannot exceed 500 km.");
+        }
+
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("startDate cannot be after endDate.");
+        }
+
+        Point searchPoint = new Point(longitude, latitude);
+
+        // 1. Query MongoDB 2dsphere index within radius for APPROVED & ACTIVE vehicles
+        NearQuery nearQuery = NearQuery.near(searchPoint, Metrics.KILOMETERS)
+                .maxDistance(effectiveRadius)
+                .query(new Query(Criteria.where("status").is("APPROVED").and("active").is(true)));
+
+        GeoResults<Car> geoResults;
+        try {
+            geoResults = mongoTemplate.geoNear(nearQuery, Car.class);
+        } catch (Exception e) {
+            // Fallback: If 2dsphere index is still building or empty, fetch approved cars and filter by Haversine distance
+            List<Car> approvedCars = carRepository.findByStatusAndActive("APPROVED", true);
+            List<GeoResult<Car>> fallbackList = new ArrayList<>();
+            for (Car car : approvedCars) {
+                if (car.getLatitude() != null && car.getLongitude() != null) {
+                    double dist = calculateHaversineDistanceKm(latitude, longitude, car.getLatitude(), car.getLongitude());
+                    if (dist <= effectiveRadius) {
+                        fallbackList.add(new GeoResult<>(car, new org.springframework.data.geo.Distance(dist, Metrics.KILOMETERS)));
+                    }
+                }
+            }
+            fallbackList.sort((a, b) -> Double.compare(a.getDistance().getValue(), b.getDistance().getValue()));
+            geoResults = new GeoResults<>(fallbackList);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<NearbyCarResponse> results = new ArrayList<>();
+
+        for (GeoResult<Car> result : geoResults) {
+            Car car = result.getContent();
+            double distanceKm = result.getDistance().getValue();
+
+            // Renter cannot book their own car
+            if (currentUserId != null && currentUserId.equals(car.getOwnerId())) {
+                continue;
+            }
+
+            // Filters
+            if (brand != null && !brand.trim().isEmpty() && (car.getBrand() == null || !car.getBrand().equalsIgnoreCase(brand.trim()))) {
+                continue;
+            }
+            if (type != null && !type.trim().isEmpty() && (car.getType() == null || !car.getType().equalsIgnoreCase(type.trim()))) {
+                continue;
+            }
+            if (fuelType != null && !fuelType.trim().isEmpty() && (car.getFuelType() == null || !car.getFuelType().equalsIgnoreCase(fuelType.trim()))) {
+                continue;
+            }
+            if (transmission != null && !transmission.trim().isEmpty() && (car.getTransmission() == null || !car.getTransmission().equalsIgnoreCase(transmission.trim()))) {
+                continue;
+            }
+            if (minPrice != null && car.getPricePerDay() < minPrice) {
+                continue;
+            }
+            if (maxPrice != null && car.getPricePerDay() > maxPrice) {
+                continue;
+            }
+
+            // Date-based availability & conflict check
+            if (startDate != null && endDate != null) {
+                // Check owner availability window
+                List<CarAvailability> availabilities = availabilityRepository.findByCarId(car.getId());
+                boolean isCovered = availabilities.stream().anyMatch(a ->
+                        !startDate.isBefore(a.getStartDate()) && !endDate.isAfter(a.getEndDate())
+                );
+                if (!isCovered) {
+                    continue;
+                }
+
+                // Check active booking conflicts
+                List<Booking> bookings = bookingRepository.findByCarId(car.getId());
+                boolean hasConflict = bookings.stream()
+                        .filter(b -> isBookingActive(b, now))
+                        .anyMatch(b -> !startDate.isAfter(b.getEndDate()) && !endDate.isBefore(b.getStartDate()));
+
+                if (hasConflict) {
+                    continue;
+                }
+            }
+
+            NearbyCarResponse resp = NearbyCarResponse.builder()
+                    .id(car.getId())
+                    .ownerId(car.getOwnerId())
+                    .brand(car.getBrand())
+                    .model(car.getModel())
+                    .year(car.getYear())
+                    .type(car.getType())
+                    .fuelType(car.getFuelType())
+                    .transmission(car.getTransmission())
+                    .seats(car.getSeats())
+                    .pricePerDay(car.getPricePerDay())
+                    .location(car.getLocation())
+                    .locationName(car.getLocationName())
+                    .latitude(car.getLatitude())
+                    .longitude(car.getLongitude())
+                    .distanceKm(Math.round(distanceKm * 10.0) / 10.0)
+                    .imageUrl(car.getImageUrl())
+                    .images(car.getImages())
+                    .averageRating(car.getAverageRating())
+                    .reviewCount(car.getReviewCount())
+                    .available(true)
+                    .status(car.getStatus())
+                    .active(car.isActive())
+                    .description(car.getDescription())
+                    .verified(car.getRcDocUrl() != null && !car.getRcDocUrl().isEmpty())
+                    .build();
+
+            results.add(resp);
+        }
+
+        return results;
+    }
+
+    public void validateCoordinates(Double latitude, Double longitude) {
+        if (latitude != null || longitude != null) {
+            if (latitude == null || longitude == null) {
+                throw new IllegalArgumentException("Both latitude and longitude must be provided together.");
+            }
+            if (latitude < -90.0 || latitude > 90.0) {
+                throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees. Received: " + latitude);
+            }
+            if (longitude < -180.0 || longitude > 180.0) {
+                throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees. Received: " + longitude);
+            }
+        }
+    }
+
+    private boolean isBookingActive(Booking b, LocalDateTime now) {
+        if ("CANCELLED".equals(b.getStatus()) || "REJECTED".equals(b.getStatus())) {
+            return false;
+        }
+
+        if ("PAYMENT_PENDING".equals(b.getStatus())) {
+            if ((b.getUtrNumber() == null || b.getUtrNumber().trim().isEmpty())
+                    && b.getExpiresAt() != null
+                    && b.getExpiresAt().isBefore(now)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static double calculateHaversineDistanceKm(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // ==========================================
     // CLOUDINARY CAR IMAGE MANAGEMENT
     // ==========================================
 
@@ -308,6 +524,20 @@ public class CarService {
         if (updatedData.getSeats() > 0) car.setSeats(updatedData.getSeats());
         if (updatedData.getPricePerDay() > 0) car.setPricePerDay(updatedData.getPricePerDay());
         if (updatedData.getLocation() != null) car.setLocation(updatedData.getLocation());
+        if (updatedData.getLocationName() != null) car.setLocationName(updatedData.getLocationName());
+        
+        if (updatedData.getLatitude() != null && updatedData.getLongitude() != null) {
+            validateCoordinates(updatedData.getLatitude(), updatedData.getLongitude());
+            car.setLatitude(updatedData.getLatitude());
+            car.setLongitude(updatedData.getLongitude());
+            car.setCoordinates(new GeoJsonPoint(updatedData.getLongitude(), updatedData.getLatitude()));
+        } else if (updatedData.getCoordinates() != null) {
+            validateCoordinates(updatedData.getCoordinates().getY(), updatedData.getCoordinates().getX());
+            car.setCoordinates(updatedData.getCoordinates());
+            car.setLatitude(updatedData.getCoordinates().getY());
+            car.setLongitude(updatedData.getCoordinates().getX());
+        }
+
         if (updatedData.getDescription() != null) car.setDescription(updatedData.getDescription());
         if (updatedData.getChassisNumber() != null) car.setChassisNumber(updatedData.getChassisNumber());
         if (updatedData.getInsurancePolicyNumber() != null) car.setInsurancePolicyNumber(updatedData.getInsurancePolicyNumber());

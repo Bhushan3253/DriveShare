@@ -8,6 +8,7 @@ import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
+import CarMap from '../../components/map/CarMap';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import {
   Car,
@@ -385,7 +386,7 @@ const CarDetails = () => {
 
             {/* Host Availability Calendar Windows */}
             {availabilities.length > 0 && (
-              <div>
+              <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>
                   Host Availability Windows
                 </h3>
@@ -408,6 +409,51 @@ const CarDetails = () => {
                       <span>{formatDate(avail.startDate)} - {formatDate(avail.endDate)}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pickup Location & Free OpenStreetMap */}
+            {car.latitude && car.longitude && (
+              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+                <div className="flex items-center justify-between flex-wrap gap-2" style={{ marginBottom: '0.75rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={18} style={{ color: 'var(--primary)' }} />
+                      <span>Pickup Location</span>
+                    </h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      {car.locationName || car.location || 'Pickup Area'}
+                    </span>
+                  </div>
+
+                  <Link
+                    to={`/nearby?radius=25`}
+                    className="btn btn-secondary btn-sm flex items-center gap-1"
+                    style={{ fontSize: '0.78rem' }}
+                  >
+                    <span>View on Nearby Map</span>
+                    <ArrowRight size={13} />
+                  </Link>
+                </div>
+
+                <div
+                  style={{
+                    height: '220px',
+                    borderRadius: 'var(--radius-md)',
+                    overflow: 'hidden',
+                    border: '1px solid var(--border-strong)',
+                    position: 'relative'
+                  }}
+                >
+                  <CarMap
+                    center={[car.latitude, car.longitude]}
+                    zoom={14}
+                    cars={[car]}
+                    selectedCar={car}
+                    showRadiusCircle={false}
+                    height="100%"
+                  />
                 </div>
               </div>
             )}

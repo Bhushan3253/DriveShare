@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.carrentalpvt.carpvt.dto.NearbyCarResponse;
 import com.carrentalpvt.carpvt.model.Car;
 import com.carrentalpvt.carpvt.service.CarService;
 
@@ -46,6 +47,32 @@ public class CarController {
     @GetMapping
     public List<Car> getAllCars() {
         return carService.getAvailableCars();
+    }
+
+    // ==========================================
+    // GEOSPATIAL NEARBY CARS (PUBLIC)
+    // ==========================================
+
+    @GetMapping("/nearby")
+    public List<NearbyCarResponse> getNearbyCars(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(required = false, defaultValue = "10") Double radius,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String fuelType,
+            @RequestParam(required = false) String transmission,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            Authentication authentication) {
+
+        String currentUserId = (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName()))
+                ? authentication.getName()
+                : null;
+
+        return carService.findNearbyCars(latitude, longitude, radius, startDate, endDate, brand, type, fuelType, transmission, minPrice, maxPrice, currentUserId);
     }
 
     // ==========================================

@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
 import {
   Car,
+  Compass,
+  MapPin,
   Menu,
   X,
   LogOut,
@@ -99,6 +101,17 @@ const Navbar = () => {
             }
           >
             Find Cars
+          </NavLink>
+
+          <NavLink
+            to="/nearby"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? 'active' : ''}`
+            }
+            style={{ color: 'var(--accent-cyan)' }}
+          >
+            <Compass size={15} style={{ marginRight: '4px' }} />
+            Nearby Map
           </NavLink>
 
           {/* Renter Specific Links */}
@@ -310,6 +323,10 @@ const Navbar = () => {
           <NavLink to="/cars" className="mobile-nav-link">
             <Car size={18} style={{ color: 'var(--accent-cyan)', flexShrink: 0 }} />
             <span>Browse All Cars</span>
+          </NavLink>
+          <NavLink to="/nearby" className="mobile-nav-link">
+            <Compass size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+            <span>Nearby Map Discovery</span>
           </NavLink>
 
           {isAuthenticated ? (

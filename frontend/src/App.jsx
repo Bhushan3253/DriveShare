@@ -17,6 +17,7 @@ import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import CarList from './pages/renter/CarList';
 import CarDetails from './pages/renter/CarDetails';
+import NearbyCars from './pages/renter/NearbyCars';
 
 // Renter Pages
 import Booking from './pages/renter/Booking';
@@ -96,6 +97,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/cars" element={<CarList />} />
+        <Route path="/nearby" element={<NearbyCars />} />
         <Route path="/cars/:id" element={<CarDetails />} />
 
         {/* Protected Renter Flow */}

@@ -13,6 +13,9 @@ const sampleCars = [
     seats: 7,
     pricePerDay: 4200,
     location: 'Bandra West, Mumbai',
+    locationName: 'Bandra West, Mumbai',
+    latitude: 19.0596,
+    longitude: 72.8295,
     description: 'Flagship 7-seater SUV with panoramic skyroof, ADAS Level 2, 360-degree camera, wireless Apple CarPlay, and Sony 3D immersive sound system.',
     imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80'
   },
@@ -26,6 +29,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 9500,
     location: 'Worli & Nariman Point, Mumbai',
+    locationName: 'Worli & Nariman Point, Mumbai',
+    latitude: 18.9986,
+    longitude: 72.8174,
     description: 'Pinnacle of executive luxury. Burmester 3D surround sound, 64-color ambient lighting, ventilated leather seats, and bi-turbo punch.',
     imageUrl: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80'
   },
@@ -39,6 +45,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 3200,
     location: 'Indiranagar, Bengaluru',
+    locationName: 'Indiranagar, Bengaluru',
+    latitude: 12.9784,
+    longitude: 77.6408,
     description: 'Immaculate condition compact SUV with ventilated front seats, Bose premium audio, voice-enabled panoramic sunroof, and smooth 7-speed DCT.',
     imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'
   },
@@ -52,6 +61,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 8500,
     location: 'Koramangala, Bengaluru',
+    locationName: 'Koramangala, Bengaluru',
+    latitude: 12.9352,
+    longitude: 77.6245,
     description: 'German luxury executive limousine with extended rear legroom, Harman Kardon audio, wireless charging, and sporty rear-wheel driving dynamics.',
     imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80'
   },
@@ -65,6 +77,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 2800,
     location: 'Cyber City, Gurugram / Delhi NCR',
+    locationName: 'Cyber City, Gurugram / Delhi NCR',
+    latitude: 28.4950,
+    longitude: 77.0895,
     description: 'Eco-friendly electric vehicle with 450km range, zero emission, CCS2 fast charging support, arcade games, and whisper-quiet city ride.',
     imageUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80'
   },
@@ -78,6 +93,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 8900,
     location: 'Aerocity, New Delhi',
+    locationName: 'Aerocity, New Delhi',
+    latitude: 28.5492,
+    longitude: 77.1215,
     description: 'Prestige business sedan with dual MMI touch response screens, Bang & Olufsen premium 3D audio, matrix LED headlights, and quattro all-wheel drive.',
     imageUrl: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=1200&q=80'
   },
@@ -91,6 +109,9 @@ const sampleCars = [
     seats: 4,
     pricePerDay: 3900,
     location: 'Anjuna & Panjim, Goa',
+    locationName: 'Anjuna & Panjim, Goa',
+    latitude: 15.5800,
+    longitude: 73.7420,
     description: 'Iconic 4x4 convertible off-roader with removable roof panels, all-terrain tires, high ground clearance, and waterproof interior.',
     imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80'
   },
@@ -104,6 +125,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 2900,
     location: 'Calangute & Candolim, Goa',
+    locationName: 'Calangute & Candolim, Goa',
+    latitude: 15.5440,
+    longitude: 73.7550,
     description: '5-star GNCAP safety rated German performance sedan with 150HP turbo engine, paddle shifters, ventilated front seats, and large 521L boot.',
     imageUrl: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=1200&q=80'
   },
@@ -117,6 +141,9 @@ const sampleCars = [
     seats: 7,
     pricePerDay: 6800,
     location: 'Koregaon Park, Pune',
+    locationName: 'Koregaon Park, Pune',
+    latitude: 18.5362,
+    longitude: 73.8940,
     description: 'Unmatched road dominance and high seating position. 500Nm torque, robust ladder-frame chassis, dual-zone climate control, and supreme highway stability.',
     imageUrl: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1200&q=80'
   },
@@ -130,7 +157,26 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 2600,
     location: 'Hinjawadi IT Park, Pune',
+    locationName: 'Hinjawadi IT Park, Pune',
+    latitude: 18.5913,
+    longitude: 73.7389,
     description: 'Self-charging strong hybrid executive sedan delivering 27km/l fuel efficiency, lane-keep assist, electric sunroof, and supreme backseat comfort.',
+    imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    brand: 'Hyundai',
+    model: 'Verna SX Turbo ADAS',
+    year: 2024,
+    type: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    seats: 5,
+    pricePerDay: 2700,
+    location: 'Sitabuldi / Station, Nagpur',
+    locationName: 'Sitabuldi / Station, Nagpur',
+    latitude: 21.1458,
+    longitude: 79.0882,
+    description: 'Futuristic sedan with 160PS power, Level 2 ADAS radar safety suite, front parking sensors, and leather seats.',
     imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80'
   },
   {
@@ -143,6 +189,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 14500,
     location: 'Jubilee Hills, Hyderabad',
+    locationName: 'Jubilee Hills, Hyderabad',
+    latitude: 17.4319,
+    longitude: 78.4073,
     description: 'Pure adrenaline sports SUV. 434HP twin-turbo V6, air suspension, sport exhaust system, Alcantara cockpit, and rapid 0-100 in 4.3s.',
     imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'
   },
@@ -156,6 +205,9 @@ const sampleCars = [
     seats: 5,
     pricePerDay: 4800,
     location: 'HITEC City & Gachibowli, Hyderabad',
+    locationName: 'HITEC City & Gachibowli, Hyderabad',
+    latitude: 17.4435,
+    longitude: 78.3772,
     description: 'Futuristic World Car of the Year. 800V ultra-fast charging architecture, relaxation comfort seats, vision roof, and vehicle-to-load power outlet.',
     imageUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80'
   }

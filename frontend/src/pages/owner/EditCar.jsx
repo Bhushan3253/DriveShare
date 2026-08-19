@@ -4,6 +4,7 @@ import carService from '../../services/carService';
 import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
+import LocationPicker from '../../components/map/LocationPicker';
 import { compressImage } from '../../utils/imageCompressor';
 import { formatDate } from '../../utils/formatters';
 import {
@@ -41,6 +42,9 @@ const EditCar = () => {
     pucExpiry: '',
     pricePerDay: '',
     location: '',
+    locationName: '',
+    latitude: null,
+    longitude: null,
     description: ''
   });
   const [savingDetails, setSavingDetails] = useState(false);
@@ -73,6 +77,9 @@ const EditCar = () => {
         pucExpiry: carData.pucExpiry || '',
         pricePerDay: carData.pricePerDay || '',
         location: carData.location || '',
+        locationName: carData.locationName || carData.location || '',
+        latitude: carData.latitude ?? null,
+        longitude: carData.longitude ?? null,
         description: carData.description || ''
       });
     } catch (err) {
@@ -98,10 +105,21 @@ const EditCar = () => {
 
   const handleSaveDetails = async (e) => {
     e.preventDefault();
+    if (vehicleForm.latitude !== null && vehicleForm.longitude !== null) {
+      if (vehicleForm.latitude < -90 || vehicleForm.latitude > 90 || vehicleForm.longitude < -180 || vehicleForm.longitude > 180) {
+        alert('Invalid geographic coordinates. Latitude must be between -90 and 90, Longitude between -180 and 180.');
+        return;
+      }
+    }
+
     try {
       setSavingDetails(true);
       setError('');
-      const updated = await carService.updateCar(id, vehicleForm);
+      const updated = await carService.updateCar(id, {
+        ...vehicleForm,
+        location: vehicleForm.locationName || vehicleForm.location,
+        locationName: vehicleForm.locationName || vehicleForm.location
+      });
       setCar(updated);
       setSaveSuccess('Vehicle details saved successfully!');
       setTimeout(() => setSaveSuccess(''), 4000);
@@ -318,18 +336,25 @@ const EditCar = () => {
                     onChange={handleVehicleFormChange}
                   />
                 </div>
+              </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.8rem' }}>Pickup Area / City</label>
-                  <input
-                    type="text"
-                    name="location"
-                    required
-                    className="form-input"
-                    value={vehicleForm.location}
-                    onChange={handleVehicleFormChange}
-                  />
-                </div>
+              {/* Location & GPS Coordinate Picker */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <LocationPicker
+                  latitude={vehicleForm.latitude}
+                  longitude={vehicleForm.longitude}
+                  locationName={vehicleForm.locationName || vehicleForm.location}
+                  required={true}
+                  onChange={({ latitude, longitude, locationName }) => {
+                    setVehicleForm((prev) => ({
+                      ...prev,
+                      latitude,
+                      longitude,
+                      locationName,
+                      location: locationName
+                    }));
+                  }}
+                />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.25rem' }}>

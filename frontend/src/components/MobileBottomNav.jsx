@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Compass, CalendarCheck, PlusCircle, User, LayoutDashboard, Shield, LogIn } from 'lucide-react';
+import { Home, Compass, MapPin, CalendarCheck, PlusCircle, User, LayoutDashboard, Shield, LogIn } from 'lucide-react';
 
 const MobileBottomNav = () => {
   const { isAuthenticated, user, hasRole } = useAuth();
@@ -22,7 +22,18 @@ const MobileBottomNav = () => {
         <span className="nav-label">Home</span>
       </NavLink>
 
-      {/* 2. Browse Cars */}
+      {/* 2. Map / Nearby */}
+      <NavLink
+        to="/nearby"
+        className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+      >
+        <div className="nav-icon-container">
+          <MapPin size={20} />
+        </div>
+        <span className="nav-label">Map</span>
+      </NavLink>
+
+      {/* 3. Browse Cars */}
       <NavLink
         to="/cars"
         className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
