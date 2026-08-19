@@ -5,6 +5,8 @@ import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
+import VehicleInspectionModal from '../../components/booking/VehicleInspectionModal';
+import InspectionReportModal from '../../components/booking/InspectionReportModal';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import {
   Calendar,
@@ -14,7 +16,9 @@ import {
   CheckCheck,
   XCircle,
   Clock,
-  Car
+  Car,
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 
 const OwnerBookings = () => {
@@ -25,6 +29,11 @@ const OwnerBookings = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
+
+  // Inspection Modals
+  const [inspectionBooking, setInspectionBooking] = useState(null);
+  const [inspectionMode, setInspectionMode] = useState(null); // 'CHECK_IN' | 'RETURN'
+  const [reportBooking, setReportBooking] = useState(null);
 
   const fetchOwnerBookings = async () => {
     try {
@@ -197,11 +206,41 @@ const OwnerBookings = () => {
 
                       {/* Handover & Trip Completion CTA */}
                       <td>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {/* Damage Flag Badge */}
+                          {b.hasDamageReported && (
+                            <span
+                              className="badge badge-danger flex items-center gap-1"
+                              style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', cursor: 'pointer' }}
+                              onClick={() => setReportBooking(b)}
+                              title="Click to view damage inspection report"
+                            >
+                              <AlertTriangle size={11} />
+                              <span>Damage Flagged</span>
+                            </span>
+                          )}
+
+                          {/* View Inspection Dossier Report */}
+                          {(b.startOdometer || b.checkedInAt || b.endOdometer) && (
+                            <button
+                              type="button"
+                              onClick={() => setReportBooking(b)}
+                              className="btn btn-outline btn-sm flex items-center gap-1"
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                              title="View full pre-trip and return inspection dossier"
+                            >
+                              <FileText size={13} style={{ color: 'var(--primary)' }} />
+                              <span>Dossier</span>
+                            </button>
+                          )}
+
                           {/* Check-In Handover */}
                           {b.status === 'CONFIRMED' && (
                             <button
-                              onClick={() => handleAction(b.id, bookingService.checkIn)}
+                              onClick={() => {
+                                setInspectionBooking(b);
+                                setInspectionMode('CHECK_IN');
+                              }}
                               disabled={actionLoading === b.id}
                               className="btn btn-success btn-sm flex items-center gap-1"
                             >
@@ -225,7 +264,10 @@ const OwnerBookings = () => {
                           {/* Return Car Handover */}
                           {b.status === 'IN_PROGRESS' && (
                             <button
-                              onClick={() => handleAction(b.id, bookingService.returnCar)}
+                              onClick={() => {
+                                setInspectionBooking(b);
+                                setInspectionMode('RETURN');
+                              }}
                               disabled={actionLoading === b.id}
                               className="btn btn-secondary btn-sm flex items-center gap-1"
                             >
@@ -266,6 +308,29 @@ const OwnerBookings = () => {
               </tbody>
             </table>
           </div>
+
+          {/* VEHICLE INSPECTION MODAL */}
+          {inspectionBooking && inspectionMode && (
+            <VehicleInspectionModal
+              booking={inspectionBooking}
+              mode={inspectionMode}
+              onClose={() => {
+                setInspectionBooking(null);
+                setInspectionMode(null);
+              }}
+              onSuccess={() => {
+                fetchOwnerBookings();
+              }}
+            />
+          )}
+
+          {/* INSPECTION REPORT MODAL */}
+          {reportBooking && (
+            <InspectionReportModal
+              booking={reportBooking}
+              onClose={() => setReportBooking(null)}
+            />
+          )}
 
           {/* Pagination */}
           <Pagination

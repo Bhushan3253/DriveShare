@@ -101,4 +101,9 @@ public class Booking {
     private java.util.List<String> checkOutPhotos = new java.util.ArrayList<>();
 
     private String checkOutNotes;
+
+    // Damage & Dispute Tracking
+    private boolean hasDamageReported = false;
+
+    private String damageDescription;
 }

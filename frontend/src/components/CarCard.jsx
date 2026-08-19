@@ -91,6 +91,14 @@ const CarCard = ({ car }) => {
         >
           <MapPin size={12} style={{ color: 'var(--primary)' }} />
           <span>{car.location || 'City'}</span>
+          {car.distanceKm !== undefined && (
+            <>
+              <span style={{ opacity: 0.5 }}>•</span>
+              <span style={{ color: '#38BDF8', fontWeight: 700 }}>
+                {car.distanceKm < 1 ? `${Math.round(car.distanceKm * 1000)} m` : `${car.distanceKm.toFixed(1)} km`}
+              </span>
+            </>
+          )}
           {car.registrationNumber && (
             <>
               <span style={{ opacity: 0.5 }}>•</span>

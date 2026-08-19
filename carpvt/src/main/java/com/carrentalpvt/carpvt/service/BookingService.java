@@ -25,6 +25,7 @@ public class BookingService {
     private final CarAvailabilityRepository availabilityRepository;
     private final PayoutService payoutService;
     private final NotificationService notificationService;
+    private final CloudinaryService cloudinaryService;
 
     public BookingService(
             BookingRepository bookingRepository,
@@ -32,7 +33,8 @@ public class BookingService {
             TransactionService transactionService,
             CarAvailabilityRepository availabilityRepository,
             PayoutService payoutService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            CloudinaryService cloudinaryService) {
 
         this.bookingRepository = bookingRepository;
         this.carService = carService;
@@ -40,6 +42,7 @@ public class BookingService {
         this.availabilityRepository = availabilityRepository;
         this.payoutService = payoutService;
         this.notificationService = notificationService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ==========================================
@@ -243,6 +246,10 @@ public class BookingService {
             if (inspection.getPhotos() != null && !inspection.getPhotos().isEmpty()) {
                 booking.setCheckInPhotos(inspection.getPhotos());
             }
+            if (inspection.isHasDamageReported()) {
+                booking.setHasDamageReported(true);
+                booking.setDamageDescription(inspection.getDamageDescription());
+            }
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -329,6 +336,18 @@ public class BookingService {
             if (inspection.getPhotos() != null && !inspection.getPhotos().isEmpty()) {
                 booking.setCheckOutPhotos(inspection.getPhotos());
             }
+            if (inspection.isHasDamageReported()) {
+                booking.setHasDamageReported(true);
+                booking.setDamageDescription(inspection.getDamageDescription());
+
+                notificationService.sendNotification(
+                        booking.getOwnerId(),
+                        "⚠️ Vehicle Return Damage Reported",
+                        "New vehicle damage was recorded for booking #" + booking.getId().substring(Math.max(0, booking.getId().length() - 6)) + ". Description: " + (inspection.getDamageDescription() != null ? inspection.getDamageDescription() : "See inspection photos."),
+                        "DAMAGE_REPORTED",
+                        booking.getId()
+                );
+            }
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -346,6 +365,32 @@ public class BookingService {
 
     public Booking returnCar(String bookingId, String userId) {
         return returnCar(bookingId, userId, null);
+    }
+
+    // ==========================================
+    // 5B. UPLOAD INSPECTION PHOTO (CLOUDINARY)
+    // ==========================================
+
+    public java.util.Map<String, String> uploadInspectionPhoto(
+            String bookingId,
+            String type,
+            org.springframework.web.multipart.MultipartFile file,
+            String userId) {
+
+        Booking booking = getBookingByIdInternal(bookingId);
+
+        boolean isRenter = booking.getRenterId().equals(userId);
+        boolean isOwner = booking.getOwnerId().equals(userId);
+
+        if (!isRenter && !isOwner) {
+            throw new AccessDeniedException("Only the renter or car owner can upload inspection photos");
+        }
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+
+        return cloudinaryService.uploadDocument(file, "inspections");
     }
 
     // ==========================================

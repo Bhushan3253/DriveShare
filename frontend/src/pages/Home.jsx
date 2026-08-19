@@ -6,6 +6,8 @@ import carService from '../services/carService';
 import Loading from '../components/Loading';
 import {
   Car,
+  Compass,
+  MapPin,
   ShieldCheck,
   Zap,
   DollarSign,
@@ -122,17 +124,23 @@ const Home = () => {
       {/* Featured Cars Section */}
       <section className="section" style={{ background: 'var(--bg-surface)' }}>
         <div className="container">
-          <div className="flex items-end justify-between" style={{ marginBottom: '2.5rem' }}>
+          <div className="flex items-end justify-between flex-wrap gap-4" style={{ marginBottom: '2.5rem' }}>
             <div>
               <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Featured Fleet
               </p>
               <h2 style={{ fontSize: '2rem', marginTop: '0.25rem' }}>Available Cars Near You</h2>
             </div>
-            <Link to="/cars" className="btn btn-outline flex items-center gap-2">
-              <span>View All Fleet</span>
-              <ArrowRight size={16} />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/nearby" className="btn btn-primary flex items-center gap-2">
+                <Compass size={16} />
+                <span>Explore Nearby Map</span>
+              </Link>
+              <Link to="/cars" className="btn btn-outline flex items-center gap-2">
+                <span>View All Fleet</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
 
           {loading ? (

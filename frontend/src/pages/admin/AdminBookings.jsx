@@ -5,6 +5,7 @@ import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
+import InspectionReportModal from '../../components/booking/InspectionReportModal';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters';
 import {
   CalendarCheck,
@@ -14,7 +15,8 @@ import {
   Download,
   XCircle,
   AlertTriangle,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 const AdminBookings = () => {
@@ -31,6 +33,9 @@ const AdminBookings = () => {
   // Force Cancel Modal
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+
+  // Inspection Dossier Modal
+  const [reportBooking, setReportBooking] = useState(null);
 
   const fetchBookings = async () => {
     try {
@@ -233,7 +238,34 @@ const AdminBookings = () => {
                         </span>
                       </td>
                       <td>
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Damage Flag Badge */}
+                          {b.hasDamageReported && (
+                            <span
+                              className="badge badge-danger flex items-center gap-1"
+                              style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', cursor: 'pointer' }}
+                              onClick={() => setReportBooking(b)}
+                              title="Click to view damage inspection report"
+                            >
+                              <AlertTriangle size={11} />
+                              <span>Damage</span>
+                            </span>
+                          )}
+
+                          {/* View Dossier Button */}
+                          {(b.startOdometer || b.checkedInAt || b.endOdometer) && (
+                            <button
+                              type="button"
+                              onClick={() => setReportBooking(b)}
+                              className="btn btn-outline btn-sm flex items-center gap-1"
+                              style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
+                              title="View full vehicle handover & damage dossier"
+                            >
+                              <FileText size={13} style={{ color: 'var(--primary)' }} />
+                              <span>Dossier</span>
+                            </button>
+                          )}
+
                           {canCancel && (
                             <button
                               onClick={() => {
@@ -256,6 +288,14 @@ const AdminBookings = () => {
               </tbody>
             </table>
           </div>
+
+          {/* INSPECTION DOSSIER MODAL */}
+          {reportBooking && (
+            <InspectionReportModal
+              booking={reportBooking}
+              onClose={() => setReportBooking(null)}
+            />
+          )}
 
           {/* Pagination */}
           <Pagination

@@ -59,6 +59,19 @@ export const bookingService = {
     return response.data;
   },
 
+  // Upload Pre-trip or Post-trip Inspection Photo (Cloudinary)
+  uploadInspectionPhoto: async (bookingId, type, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    const response = await api.post(`/api/bookings/${bookingId}/inspection-photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
   // Admin - All bookings
   getAllBookings: async () => {
     const response = await api.get('/api/admin/bookings');

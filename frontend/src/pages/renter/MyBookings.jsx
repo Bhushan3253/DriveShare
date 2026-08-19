@@ -7,6 +7,8 @@ import Loading from '../../components/Loading';
 import ErrorMessage from '../../components/ErrorMessage';
 import StatusBadge from '../../components/StatusBadge';
 import Pagination from '../../components/Pagination';
+import VehicleInspectionModal from '../../components/booking/VehicleInspectionModal';
+import InspectionReportModal from '../../components/booking/InspectionReportModal';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/formatters';
 import {
   Calendar,
@@ -410,171 +412,29 @@ const MyBookings = () => {
       )}
 
       {/* TRIP HANDOVER & VEHICLE INSPECTION MODAL */}
+      {/* VEHICLE PRE-TRIP & RETURN DAMAGE INSPECTION MODAL */}
       {inspectionModalMode && selectedInspectionBooking && (
-        <div className="modal-backdrop" style={{ zIndex: 1100 }}>
-          <div className="modal-content" style={{ maxWidth: '600px', width: '90%' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
-              <div className="flex items-center gap-2">
-                <ClipboardCheck size={20} style={{ color: 'var(--primary)' }} />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>
-                  {inspectionModalMode === 'CHECK_IN' ? 'Pre-Trip Handover Inspection' : 'Post-Trip Return Inspection'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setInspectionModalMode(null)}
-                className="btn btn-outline btn-sm"
-                style={{ borderRadius: '50%', padding: '6px' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              {inspectionModalMode === 'CHECK_IN'
-                ? 'Record vehicle condition and starting odometer with the host before taking the keys.'
-                : 'Record final odometer reading and return fuel level to complete your rental handover.'}
-            </p>
-
-            <form onSubmit={handleInspectionSubmit}>
-              <div className="grid grid-cols-2 gap-4" style={{ marginBottom: '1rem' }}>
-                {/* Odometer */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label flex items-center gap-1">
-                    <Gauge size={13} style={{ color: 'var(--accent-cyan)' }} />
-                    <span>{inspectionModalMode === 'CHECK_IN' ? 'Starting Odometer (KM) *' : 'Return Odometer (KM) *'}</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    className="form-input"
-                    placeholder="e.g. 24500"
-                    value={odometer}
-                    onChange={(e) => setOdometer(e.target.value)}
-                  />
-                  {inspectionModalMode === 'RETURN' && selectedInspectionBooking.startOdometer && odometer && (
-                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', marginTop: '2px', display: 'block' }}>
-                      Driven: {Math.max(0, parseInt(odometer, 10) - selectedInspectionBooking.startOdometer)} KM
-                    </span>
-                  )}
-                </div>
-
-                {/* Fuel Level */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label flex items-center gap-1">
-                    <Fuel size={13} style={{ color: 'var(--accent-emerald)' }} />
-                    <span>Fuel Level (%)</span>
-                  </label>
-                  <select
-                    className="form-select"
-                    value={fuelLevel}
-                    onChange={(e) => setFuelLevel(e.target.value)}
-                  >
-                    <option value="100%">100% (Full Tank)</option>
-                    <option value="75%">75% (3/4 Tank)</option>
-                    <option value="50%">50% (Half Tank)</option>
-                    <option value="25%">25% (Quarter Tank)</option>
-                    <option value="Empty">Near Empty</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Inspection Notes */}
-              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                <label className="form-label">Pre-existing Scratches / Notes</label>
-                <textarea
-                  rows={2}
-                  className="form-textarea"
-                  placeholder="e.g. Small scratch on rear bumper, spare tire present, pristine interior..."
-                  value={inspectionNotes}
-                  onChange={(e) => setInspectionNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setInspectionModalMode(null)}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingInspection}
-                  className="btn btn-primary flex items-center gap-1.5"
-                >
-                  <CheckCircle size={14} />
-                  <span>{submittingInspection ? 'Submitting...' : `Confirm & Save ${inspectionModalMode === 'CHECK_IN' ? 'Check-In' : 'Return'}`}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <VehicleInspectionModal
+          booking={selectedInspectionBooking}
+          mode={inspectionModalMode}
+          onClose={() => setInspectionModalMode(null)}
+          onSuccess={() => {
+            toast.success(
+              inspectionModalMode === 'CHECK_IN'
+                ? 'Pre-trip check-in inspection recorded!'
+                : 'Return inspection recorded & car returned!'
+            );
+            fetchBookings();
+          }}
+        />
       )}
 
-      {/* INSPECTION REPORT VIEWER MODAL */}
+      {/* BEFORE / AFTER SIDE-BY-SIDE INSPECTION DOSSIER MODAL */}
       {reportBooking && (
-        <div className="modal-backdrop" style={{ zIndex: 1100 }}>
-          <div className="modal-content" style={{ maxWidth: '550px', width: '90%' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
-              <div className="flex items-center gap-2">
-                <FileText size={20} style={{ color: 'var(--primary)' }} />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Vehicle Handover Report</h3>
-              </div>
-              <button
-                onClick={() => setReportBooking(null)}
-                className="btn btn-outline btn-sm"
-                style={{ borderRadius: '50%', padding: '6px' }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4" style={{ marginBottom: '1.25rem' }}>
-              {/* Start Handover */}
-              <div style={{ background: 'var(--bg-surface-raised)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <strong style={{ fontSize: '0.9rem', color: 'var(--primary)', display: 'block', marginBottom: '0.5rem' }}>
-                  🏁 Check-In Handover
-                </strong>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Odometer: <strong>{reportBooking.startOdometer ? `${reportBooking.startOdometer} km` : 'Not recorded'}</strong>
-                </p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Fuel Level: <strong>{reportBooking.startFuelLevel || '100%'}</strong>
-                </p>
-                {reportBooking.checkInNotes && (
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                    Note: "{reportBooking.checkInNotes}"
-                  </p>
-                )}
-              </div>
-
-              {/* Return Handover */}
-              <div style={{ background: 'var(--bg-surface-raised)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <strong style={{ fontSize: '0.9rem', color: 'var(--accent-emerald)', display: 'block', marginBottom: '0.5rem' }}>
-                  🏁 Return Handover
-                </strong>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Odometer: <strong>{reportBooking.endOdometer ? `${reportBooking.endOdometer} km` : 'Pending return'}</strong>
-                </p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Fuel Level: <strong>{reportBooking.endFuelLevel || '-'}</strong>
-                </p>
-                {reportBooking.totalDistanceDriven && (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 700, marginTop: '0.25rem' }}>
-                    Total Driven: {reportBooking.totalDistanceDriven} km
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button onClick={() => setReportBooking(null)} className="btn btn-secondary btn-sm">
-                Close Report
-              </button>
-            </div>
-          </div>
-        </div>
+        <InspectionReportModal
+          booking={reportBooking}
+          onClose={() => setReportBooking(null)}
+        />
       )}
 
       {/* Cancel Confirmation Modal */}

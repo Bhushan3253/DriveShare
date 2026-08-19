@@ -134,6 +134,21 @@ public class BookingController {
     }
 
     // ==========================================
+    // 7B. UPLOAD INSPECTION PHOTO (CLOUDINARY)
+    // ==========================================
+
+    @PostMapping("/{id}/inspection-photo")
+    public java.util.Map<String, String> uploadInspectionPhoto(
+            @PathVariable String id,
+            @RequestParam(value = "type", defaultValue = "CHECK_IN") String type,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            Authentication authentication) {
+
+        String userId = requireAuthenticatedUserId(authentication);
+        return bookingService.uploadInspectionPhoto(id, type, file, userId);
+    }
+
+    // ==========================================
     // 8. COMPLETE BOOKING & FINALIZE EARNINGS (CAR OWNER)
     // ==========================================
 

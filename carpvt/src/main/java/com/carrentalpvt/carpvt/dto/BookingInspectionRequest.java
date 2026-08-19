@@ -13,4 +13,8 @@ public class BookingInspectionRequest {
     private String notes;
 
     private List<String> photos;
+
+    private boolean hasDamageReported;
+
+    private String damageDescription;
 }
