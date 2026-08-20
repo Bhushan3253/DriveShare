@@ -18,6 +18,7 @@ DriveShare (CarSharePro) is a peer-to-peer car sharing and private vehicle renta
 - **Detailed Vehicle Profiles**: Multiple high-resolution images, technical specs, fuel type, transmission, seating capacity, host ratings, and verified reviews.
 - **Transparent Instant Pricing**: Automated calculation of daily rates, duration multipliers, platform commission fees, and total cost breakdown.
 - **15-Minute Reservation Holds**: Temporary reservation locks preventing race conditions and double-booking while awaiting payment.
+- **Direct Android APK & QR Download**: Instant mobile APK download directly from landing page hero, navbar, and footer with desktop camera QR code scanning.
 - **UPI QR Payment & UTR Submission**: Seamless payment flow with generated UPI QR codes, deep-link intent launching for Google Pay/PhonePe/Paytm/BHIM, and 12-digit UTR tracking.
 - **Digital Vehicle Inspection**: Pre-trip check-in and post-trip return inspection workflows with camera photo uploads and odometer recording.
 - **KYC Verification**: Secure driving license upload with admin verification.
@@ -164,18 +165,25 @@ node scripts/seed_fleet.mjs
 
 ---
 
-## 📱 Building the Android Application
+## 📱 Building & Hosting the Android Application
 
-To build the Android APK:
+To build the native Android APK and host it on the website for direct visitor downloads:
 
 ```bash
+# 1. Build and sync web assets into Android project
 cd frontend
 npm run build
 npx cap sync android
+
+# 2. Build Debug APK via Gradle
 cd android
-./gradlew assembleDebug
+./gradlew assembleDebug       # On Windows: .\gradlew.bat assembleDebug
+
+# 3. Host APK for website downloads (/driveshare.apk)
+cp app/build/outputs/apk/debug/app-debug.apk ../public/driveshare.apk
 ```
-For detailed instructions and Google Play release bundling, see [docs/ANDROID_BUILD_GUIDE.md](docs/ANDROID_BUILD_GUIDE.md).
+
+For detailed instructions, release Keystore signing, and Google Play release bundling, see [docs/ANDROID_BUILD_GUIDE.md](docs/ANDROID_BUILD_GUIDE.md).
 
 ---
 

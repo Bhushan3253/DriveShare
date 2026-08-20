@@ -73,3 +73,29 @@ The compiled APK will be output to:
    - Select **Android App Bundle** or **APK**.
    - Create or select your release Keystore and key alias.
    - Select build variant **release** and click **Finish**.
+
+---
+
+## Step 4: Host APK on Website for Direct Visitor Downloads
+
+DriveShare includes an integrated mobile showcase section on the landing page, desktop navigation CTA, and scannable QR code that lets visitors download and install the Android app with one click.
+
+To update the downloadable APK on the live website:
+
+### Copy to Frontend Public Directory
+```bash
+# From frontend/android directory (Linux / macOS):
+cp app/build/outputs/apk/debug/app-debug.apk ../public/driveshare.apk
+```
+
+On Windows PowerShell:
+```powershell
+# From frontend\android directory:
+Copy-Item "app\build\outputs\apk\debug\app-debug.apk" "..\public\driveshare.apk" -Force
+```
+
+### How It Works:
+- Any `.apk` placed in `frontend/public/` is served statically at `/driveshare.apk` (e.g., `https://yourdomain.com/driveshare.apk`).
+- When visitors click **"Download APK"** or scan the on-screen QR code from desktop, the file downloads directly as `DriveShare.apk`.
+- Rebuilding the web app (`npm run build`) automatically bundles the public APK into `frontend/dist/driveshare.apk` for production deployment (Vercel, Nginx, Docker, etc.).
+
