@@ -4,22 +4,23 @@ import SearchBar from '../components/SearchBar';
 import CarCard from '../components/CarCard';
 import carService from '../services/carService';
 import Loading from '../components/Loading';
+import AppDownloadQR from '../components/AppDownloadQR';
 import {
   Car,
   Compass,
-  MapPin,
   ShieldCheck,
   Zap,
   DollarSign,
-  Calendar,
   Sparkles,
-  Award,
-  Users,
   CheckCircle,
   ArrowRight,
-  TrendingUp,
   Key,
-  Shield
+  Shield,
+  Smartphone,
+  Download,
+  Camera,
+  Navigation,
+  BellRing
 } from 'lucide-react';
 
 const Home = () => {
@@ -99,8 +100,42 @@ const Home = () => {
           </p>
 
           {/* Search Box Component */}
-          <div style={{ maxWidth: '900px', margin: '0 auto 2rem' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto 1.5rem' }}>
             <SearchBar />
+          </div>
+
+          {/* Quick App Download Pill */}
+          <div className="flex items-center justify-center gap-3" style={{ marginBottom: '2rem' }}>
+            <a
+              href="/driveshare.apk"
+              download="DriveShare.apk"
+              className="btn btn-secondary btn-sm flex items-center gap-2"
+              style={{
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.35)',
+                color: '#60A5FA',
+                padding: '0.45rem 1.1rem',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 0 15px rgba(59, 130, 246, 0.15)'
+              }}
+            >
+              <Smartphone size={15} />
+              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Download Android App (.APK)</span>
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  background: 'rgba(59, 130, 246, 0.25)',
+                  color: '#93C5FD',
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '4px',
+                  fontWeight: 700
+                }}
+              >
+                v1.0.0
+              </span>
+            </a>
           </div>
 
           {/* Trust Highlights */}
@@ -347,6 +382,259 @@ const Home = () => {
                     <span style={{ color: 'var(--primary)', fontWeight: 700 }}>₹6,000 - ₹12,000+ / day</span>
                   </div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Weekend rental ~ ₹60,000+ / month</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile App Download Showcase Section */}
+      <section
+        className="section"
+        style={{
+          background: 'radial-gradient(ellipse 70% 60% at 50% 10%, rgba(37, 99, 235, 0.15), transparent 70%), var(--bg-surface)',
+          borderTop: '1px solid var(--border-subtle)',
+          borderBottom: '1px solid var(--border-subtle)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <div className="container">
+          <div className="grid grid-cols-2 gap-10 items-center">
+            {/* Left Column: Information & Key Capabilities */}
+            <div>
+              <div
+                className="flex items-center gap-2"
+                style={{
+                  display: 'inline-flex',
+                  background: 'rgba(59, 130, 246, 0.12)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: 'var(--radius-full)',
+                  marginBottom: '1.25rem',
+                  color: '#60A5FA',
+                  fontSize: '0.85rem',
+                  fontWeight: 600
+                }}
+              >
+                <Smartphone size={16} />
+                <span>DriveShare for Android</span>
+                <span
+                  style={{
+                    background: 'var(--primary)',
+                    color: '#FFFFFF',
+                    padding: '0.1rem 0.45rem',
+                    borderRadius: '4px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    marginLeft: '4px'
+                  }}
+                >
+                  APK v1.0.0
+                </span>
+              </div>
+
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '1rem', color: '#FFFFFF' }}>
+                Rent & Host on the Go with Our Android App
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                Get the full native DriveShare experience with instant deep-linked UPI payments, live GPS radar vehicle lookup, offline-capable reservations, and instant camera KYC upload.
+              </p>
+
+              {/* 4 Feature Highlights */}
+              <div className="grid grid-cols-2 gap-4" style={{ marginBottom: '2.25rem' }}>
+                <div
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem'
+                  }}
+                >
+                  <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
+                    <Zap size={18} style={{ color: 'var(--accent-cyan)' }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFFFFF' }}>1-Tap UPI Intent</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    Directly launch GPay, PhonePe, or Paytm for instant payment hold without manual typing.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem'
+                  }}
+                >
+                  <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
+                    <Navigation size={18} style={{ color: 'var(--accent-emerald)' }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFFFFF' }}>Live GPS Radar</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    Find available cars near your exact location with interactive map directions and distance.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem'
+                  }}
+                >
+                  <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
+                    <Camera size={18} style={{ color: 'var(--primary)' }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFFFFF' }}>Camera Inspection</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    Snap and upload odometer & inspection condition photos directly during check-in.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem'
+                  }}
+                >
+                  <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
+                    <BellRing size={18} style={{ color: '#FBBF24' }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFFFFF' }}>Live Trip Alerts</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    Instant push notifications on admin verification, booking approvals, and settlements.
+                  </p>
+                </div>
+              </div>
+
+              {/* Direct Actions */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <a
+                  href="/driveshare.apk"
+                  download="DriveShare.apk"
+                  className="btn btn-primary btn-lg flex items-center gap-2"
+                  style={{ textDecoration: 'none', padding: '0.85rem 1.75rem' }}
+                >
+                  <Download size={20} />
+                  <span>Download APK (4.4 MB)</span>
+                </a>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  <span>Compatible with Android 8.0 & above</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive QR Code Card & Installation Steps */}
+            <div
+              className="card card-glass"
+              style={{
+                padding: '2.5rem',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)',
+                boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <div className="flex flex-col items-center text-center">
+                {/* QR Code */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <AppDownloadQR size={170} />
+                </div>
+
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.4rem', color: '#FFFFFF' }}>
+                  Scan with Phone Camera
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '320px', marginBottom: '1.75rem' }}>
+                  Point your Android camera at the QR code to begin downloading the APK immediately.
+                </p>
+
+                {/* 3 Step Installation Checklist */}
+                <div
+                  style={{
+                    background: 'var(--bg-surface-raised)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1.25rem',
+                    width: '100%',
+                    textAlign: 'left'
+                  }}
+                >
+                  <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
+                    Quick 3-Step Installation
+                  </p>
+
+                  <div className="flex flex-col gap-2.5" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    <div className="flex items-start gap-2">
+                      <span
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          color: '#60A5FA',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                          marginTop: '1px'
+                        }}
+                      >
+                        1
+                      </span>
+                      <span>Tap <strong>Download APK</strong> or scan the QR code above.</span>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <span
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          color: '#60A5FA',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                          marginTop: '1px'
+                        }}
+                      >
+                        2
+                      </span>
+                      <span>When prompted, tap <strong>"Download anyway"</strong> and open the downloaded file.</span>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <span
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          color: '#60A5FA',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                          marginTop: '1px'
+                        }}
+                      >
+                        3
+                      </span>
+                      <span>Tap <strong>Install</strong> to install DriveShare and launch the app!</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

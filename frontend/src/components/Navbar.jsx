@@ -19,7 +19,8 @@ import {
   CreditCard,
   CheckCircle,
   Star,
-  ChevronDown
+  ChevronDown,
+  Smartphone
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -166,6 +167,26 @@ const Navbar = () => {
 
         {/* Right Section: Auth & Notifications */}
         <div className="desktop-only flex items-center gap-3">
+          {/* Download App CTA */}
+          <a
+            href="/driveshare.apk"
+            download="DriveShare.apk"
+            className="btn btn-secondary btn-sm flex items-center gap-1.5"
+            style={{
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(59, 130, 246, 0.08)',
+              border: '1px solid rgba(59, 130, 246, 0.35)',
+              color: '#60A5FA',
+              textDecoration: 'none',
+              padding: '0.35rem 0.85rem'
+            }}
+            title="Download Android APK"
+          >
+            <Smartphone size={14} />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Get App</span>
+            <span style={{ fontSize: '0.65rem', background: 'rgba(59, 130, 246, 0.2)', padding: '0.1rem 0.35rem', borderRadius: '3px' }}>APK</span>
+          </a>
+
           {isAuthenticated ? (
             <>
               <NotificationBell />
@@ -328,6 +349,24 @@ const Navbar = () => {
             <Compass size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
             <span>Nearby Map Discovery</span>
           </NavLink>
+          <a
+            href="/driveshare.apk"
+            download="DriveShare.apk"
+            className="mobile-nav-link"
+            style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              color: '#60A5FA'
+            }}
+          >
+            <Smartphone size={18} style={{ color: '#60A5FA', flexShrink: 0 }} />
+            <div className="flex items-center justify-between" style={{ width: '100%' }}>
+              <span>Download Android App</span>
+              <span style={{ fontSize: '0.7rem', background: 'rgba(59, 130, 246, 0.25)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 700 }}>
+                APK v1.0
+              </span>
+            </div>
+          </a>
 
           {isAuthenticated ? (
             <>

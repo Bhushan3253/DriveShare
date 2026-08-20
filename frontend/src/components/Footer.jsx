@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Car, ShieldCheck, Heart, Mail, Phone, MapPin } from 'lucide-react';
+import { Car, ShieldCheck, Heart, Mail, Phone, MapPin, Smartphone, Download } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -38,10 +38,34 @@ const Footer = () => {
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
               The premium peer-to-peer car sharing marketplace. Turn your unused car days into steady income, or rent vetted private vehicles in minutes.
             </p>
-            <div className="flex items-center gap-2" style={{ color: 'var(--accent-emerald)', fontSize: '0.85rem' }}>
+            <div className="flex items-center gap-2" style={{ color: 'var(--accent-emerald)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
               <ShieldCheck size={18} />
               <span>100% UPI & Admin Verified</span>
             </div>
+
+            {/* Direct Mobile App Download Badge */}
+            <a
+              href="/driveshare.apk"
+              download="DriveShare.apk"
+              className="btn btn-secondary btn-sm flex items-center gap-2"
+              style={{
+                display: 'inline-flex',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                color: '#60A5FA',
+                padding: '0.5rem 0.85rem',
+                textDecoration: 'none'
+              }}
+              title="Download Android APK"
+            >
+              <Smartphone size={16} />
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>Get Android App</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Direct APK (v1.0.0)</div>
+              </div>
+              <Download size={14} style={{ marginLeft: 'auto' }} />
+            </a>
           </div>
 
           {/* Col 2: Quick Links */}

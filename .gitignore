@@ -35,6 +35,7 @@ target/
 build/
 app/build/
 *.apk
+!frontend/public/*.apk
 *.aab
 local.properties
 .cxx/
